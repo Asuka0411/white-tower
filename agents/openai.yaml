@@ -1,0 +1,7 @@
+interface:
+  display_name: "Product Stage Gates"
+  short_description: "受控vibe coding阶段门禁流程"
+  default_prompt: "Use $product-stage-gates to bootstrap or audit this project, connect product-requirements, technical-plan, workstreams, todo-slices, and gate checks, then propose the next safe action."
+
+policy:
+  allow_implicit_invocation: true

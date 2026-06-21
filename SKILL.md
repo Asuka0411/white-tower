@@ -1,0 +1,455 @@
+---
+name: product-stage-gates
+description: Governed vibe coding workflow for AI assisted product development with stage gates, artifact chaining, workstreams, todo-slices, repository guardrails, and release handoff. Use when the user wants to start a new project, plan, restart, audit, or continue a product from idea to product-requirements, experience-design, technical-plan, architecture, architecture-decisions, workstreams, todo-slices, small-step implementation, git commits, and release/deployment; when asked to extract staged TODO lists from process screenshots or notes; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, stage-gates, pre-commit, pre-push, CI, or check-stage-gate scripts.
+---
+
+# Product Stage Gates
+
+用这个 skill 把 AI 辅助产品开发约束成高可用、有序、可恢复的 vibe coding 流程，避免一上来就写代码。每个阶段都必须产出能约束下一阶段的文件，完成验证后再前进。如果后续阶段暴露前序问题，回到对应上游文档修正，而不是在当前阶段硬补。
+
+## 快速使用
+
+用户可以显式触发：
+
+```text
+Use $product-stage-gates 检查当前项目阶段，给出下一步 TODO 和门禁状态。
+```
+
+常见请求和处理方式：
+
+- “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/project-status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 阶段门禁 / 风险”输出。
+- “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
+- “开始开发 / 初始化项目 / 写功能”：先运行门禁检查；如果仍处于 `source-locked`，不要创建源码目录或工程文件。
+- “提交代码”：先运行 `node scripts/check-stage-gate.mjs --staged`、仓库既有检查和 `git diff --check`。
+- “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/project-status.md`、`TODO.md` 和必要 architecture-decision。
+
+项目第一次接入时，先创建 `docs/stage-gates.md`、`docs/project-status.md`、`TODO.md` 和 `scripts/check-stage-gate.mjs`。之后所有后续改动都按 `docs/project-status.md` 的 `current_stage` 和 `gate_mode` 检查。
+
+## 受控 Vibe Coding 协议
+
+目标不是压制探索，而是把探索变成可恢复、可验证、可交接的工程流程。无论是新项目还是已有项目，都按同一条产物链推进：
+
+```text
+product-requirements
+ -> experience-design
+ -> technical-plan
+ -> architecture
+ -> architecture-decisions
+ -> workstreams
+ -> todo-slices
+ -> implementation
+ -> verification
+ -> release-handoff
+```
+
+### 新项目 Bootstrap
+
+当用户在一个新仓库里说“开始”“规划一下”“直接做”“vibe coding”时：
+
+1. 先检查是否已有 `README`、`docs/`、`TODO.md`、源码目录、git 状态。
+2. 如果没有阶段门禁，先创建最小门禁文件：
+   - `docs/project-status.md`
+   - `docs/stage-gates.md`
+   - `TODO.md`
+   - `docs/workstreams/README.md`
+   - `docs/workstreams/template.md`
+   - `scripts/check-stage-gate.*`，脚本语言按仓库现有技术栈选择；无法判断时用 Node 或 shell。
+3. 把 `current_stage` 设为当前真实阶段，不要默认进入开发。
+4. 如果没有 product-requirements，停在阶段 1；如果没有 experience-design，停在阶段 2；如果没有 technical-plan / architecture 和 TODO，停在阶段 3。
+5. 只有阶段 4 且 `gate_mode=development` 后，才允许初始化应用工程或写功能代码。
+
+### 自动推进循环
+
+每次执行任务都按这个循环：
+
+1. **Read**：读取 `docs/project-status.md`、`docs/stage-gates.md`、`TODO.md`、相关 product-requirements / experience-design / architecture-decision / workstream 和 `git status`。
+2. **Decide**：判断当前阶段、允许动作、禁止动作、下一步最小切片。
+3. **Act**：只执行一个阶段内的最小可验证动作。
+4. **Verify**：运行门禁脚本、仓库既有检查和与改动相关的最小验证。
+5. **Record**：更新 TODO、workstream、项目状态或 architecture-decision，使下一次会话能从仓库文件恢复。
+6. **Report**：总结改动、验证、阻塞、下一步。
+
+如果循环中发现阶段不满足，停止越级任务，改为补齐门禁产物。
+
+### 自动推进边界
+
+可以自主推进：
+
+- 创建和更新阶段文档。
+- 拆 TODO。
+- 创建 workstream。
+- 补 architecture-decision 草稿。
+- 运行门禁和检查。
+- 在阶段 4 后按 active workstream 实现小切片。
+
+必须停下来说明或询问：
+
+- 产品方向冲突。
+- 页面范围、平台范围或数据模型冲突。
+- 需要删除、重写或回滚用户已有改动。
+- 门禁要求与用户明确指令冲突。
+- 需要引入重大依赖、服务端、账号、云同步、公网访问或付费服务。
+
+## 核心规则
+
+从项目里的耐久文件开始，不从感觉或聊天记忆开始：
+
+1. 检查当前仓库状态：`README`、`docs/`、product-requirements、experience-design、architecture、`TODO`/backlog、`git status`、已有源码。
+2. 判断当前阶段和已完成产物。
+3. 创建或更新阶段 TODO。
+4. 执行当前阶段最小且合理的下一步。
+5. 运行对应验证。
+6. 把结果写回耐久文件，再进入下一阶段。
+
+在 product-requirements、experience-design、technical-plan / architecture 足够稳定之前，不开始功能实现。
+
+## 拦截模型
+
+Skill 只负责让 agent 会判断门禁，不能单独阻止用户、脚本或另一个 agent 绕过流程。需要三层一起落地：
+
+1. 软拦截：把阶段规则写入 skill、`AGENTS.md`、`docs/协作流程.md` 或等价协作文档。作用是让 agent 默认先审计阶段，再决定能不能继续。
+2. 中拦截：把当前阶段写入仓库文件，例如 `docs/project-status.md`，并用脚本检查当前阶段允许什么、禁止什么。
+3. 硬拦截：把检查脚本接入 `pre-commit`、`pre-push`、CI、PR 模板或分支保护。作用是在提交、推送或合并路径上挡住越级改动。
+
+不要把“我会遵守 skill”当成真正拦截。真正可依赖的是仓库文件 + 自动检查 + 合并规则。
+
+### 推荐仓库文件
+
+优先在项目内创建这些文件，而不是只保存在聊天里：
+
+- `docs/stage-gates.md`：五阶段定义、每阶段进入条件、退出条件、允许动作、禁止动作。
+- `docs/project-status.md`：当前阶段、门禁强度、已通过门禁、允许动作、禁止动作、下一阶段条件。
+- `TODO.md`：当前阶段和下一阶段的可执行 backlog。
+- `docs/workstreams/`：并行需求的需求级门禁，每个需求一个文件。
+- `scripts/check-stage-gate.mjs` 或同类脚本：读取阶段状态并检查当前 diff。
+
+`docs/project-status.md` 可以使用这种结构：
+
+```markdown
+# Project Status
+
+current_stage: 3-prepare-development
+
+gate_mode: source-locked
+
+allowed_actions:
+- update-docs
+- create-architecture
+- create-todo
+- create-adr
+
+blocked_actions:
+- initialize-app-code
+- implement-feature
+- add-runtime-dependency
+
+gate_to_next_stage:
+- docs/architecture.md exists
+- docs/technical-plan.md exists
+- TODO.md exists and has ordered implementation slices
+- at least one accepted architecture-decision records initial architecture
+```
+
+`gate_mode` 建议使用：
+
+- `bootstrap`：门禁系统第一次加入仓库。
+- `source-locked`：允许文档、architecture、TODO、architecture-decision、门禁脚本和 experience-design 准备工作，禁止正式源码。
+- `development`：允许源码实现，但必须具备 architecture、TODO、architecture-decision 和质量命令。
+- `release`：发布前收敛，强调文档反扫、构建、部署和回滚。
+
+### 检查脚本职责
+
+`check-stage-gate` 脚本应该做确定性检查，不要依赖 LLM 判断：
+
+- 读取 `docs/project-status.md` 或等价状态源。
+- 支持 Bootstrap：如果项目还没有 `docs/project-status.md`，只允许新增门禁初始化文件；不要要求一个尚不存在的门禁系统先通过门禁。
+- 检查当前阶段和 `gate_mode` 对应的必需文件是否存在。
+- 检查 `git diff --name-only --cached` 和 `git diff --name-only`。
+- 支持 `--staged`，用于 pre-commit 只检查暂存区。
+- 如果阶段还没有进入正式开发，却新增源码目录、应用工程、业务代码、运行时依赖，直接失败。
+- 如果试图进入正式开发或当前状态已标记为阶段 4 以后，但 technical-plan、`TODO.md` 或 architecture-decision 缺失，直接失败。
+- 输出清楚的阻塞原因和下一步应补的文档。
+
+示例伪逻辑：
+
+```text
+if current_stage < 4-formal-development:
+  block new app source roots, package manifests, Xcode projects, runtime dependencies, feature code
+
+if current_stage == 3-prepare-development:
+  require TODO.md
+  allow docs/architecture.md, docs/technical-plan.md, TODO, architecture-decisions, gate docs, check scripts
+  block source roots and runtime dependencies
+
+if current_stage >= 4-formal-development:
+  require docs/architecture.md or docs/technical-plan.md
+  require docs/adr/*.md beyond README for initial architecture/tech-stack decision
+
+always:
+  allow docs, product-requirements, experience-design, architecture-decisions, TODO, gate scripts, and check configuration updates
+```
+
+### Agent 执行要求
+
+当用户要求“继续”“开始开发”“提交代码”“初始化项目”“写功能”时，先执行：
+
+```bash
+git status --short
+test -f docs/project-status.md && sed -n '1,220p' docs/project-status.md || true
+test -f docs/stage-gates.md && sed -n '1,220p' docs/stage-gates.md || true
+test -f TODO.md && sed -n '1,220p' TODO.md || true
+```
+
+如果存在检查脚本，优先运行：
+
+```bash
+node scripts/check-stage-gate.mjs
+```
+
+提交前或 hook 中运行：
+
+```bash
+node scripts/check-stage-gate.mjs --staged
+```
+
+检查失败时，不要继续越级任务；改为补齐门禁要求，并向用户说明阻塞原因和可执行下一步。
+
+### 文档拆分与 TODO 链接
+
+拆需求、技术文档和 TODO 时，按固定关系维护：
+
+```text
+product-requirements module
+ -> technical-plan / architecture
+ -> architecture-decision when tradeoffs matter
+ -> workstream
+ -> todo-slice
+ -> code paths
+```
+
+规则：
+
+- product-requirements 回答“做什么、为什么、验收什么”。
+- 技术方案回答“怎么做、放哪里、边界是什么、数据怎么流”。
+- architecture-decision 记录“为什么选择这个方案而不是其他方案”。
+- workstream 回答“这个需求当前状态、能改哪些路径、依赖什么、怎么验收”。
+- todo-slice 回答“下一步具体改什么、怎么验证、是否能独立提交”。
+
+如果 TODO 找不到对应 workstream，先补 workstream。如果 workstream 找不到 product-requirements / technical-plan 依据，先补上游文档。
+
+### 并行需求
+
+多个需求并行时，使用项目级门禁 + workstream 门禁：
+
+- 项目级门禁由 `docs/project-status.md` 管理，决定整个项目能不能进入开发。
+- 需求级门禁由 `docs/workstreams/<workstream-id>.md` 管理，决定某个需求能改哪些路径。
+- 阶段 1-3 或 `gate_mode=source-locked` 时，即使有多个 workstream，也只能做文档、architecture、TODO、architecture-decision、experience-design 和门禁准备。
+- 阶段 4 或 `gate_mode=development` 后，源码改动必须命中至少一个 `status=active` workstream 的 `allowed_paths`。
+- 如果多个 workstream 需要改共享契约、数据模型、架构边界，先补 architecture-decision 或在 workstream 中声明依赖。
+
+创建 workstream 时至少包含：
+
+```markdown
+workstream_id: import-directory-init
+status: draft
+stage: 3-prepare-development
+
+## allowed_paths
+
+- docs/**
+- TODO.md
+
+## blocked_paths
+
+- apps/**
+- packages/**
+```
+
+## 阶段地图
+
+### 1. product-requirements
+
+目标：先定义产品是什么，再让 coding agent 写软件。
+
+需要澄清并文档化：
+
+- 这个产品解决什么问题。
+- 目标用户是谁。
+- 用户现在怎么解决。
+- 现有方案有什么不足。
+- 竞品是谁，差异化在哪。
+- MVP 先做什么。
+- 明确哪些功能先不做。
+- 最终形态：网页、小程序、插件、桌面 App、移动 App、内部工具等。
+- 成本约束：API 成本、服务器成本、时间成本、运营风险。
+
+预期产物：
+
+- `docs/prd/README.md`.
+- 产品定位。
+- 用户痛点。
+- MVP 范围。
+- 页面或功能清单。
+- 核心用户流程。
+- 验收标准。
+- 主要风险和非目标。
+
+门禁检查：
+
+- 如果 AI 还需要猜用户、MVP、核心流程或业务规则，停留在本阶段。
+- 如果 experience-design 阶段发现产品逻辑冲突，回到 product-requirements 修正，不要只在原型里绕过去。
+
+### 2. experience-design
+
+目标：在实现前，让产品逻辑和设计方向可见。
+
+需要收集或定义：
+
+- 整体气质。
+- 色彩方向。
+- 布局结构。
+- 卡片、列表、表格、网格风格。
+- 组件密度。
+- 交互状态。
+- 加载、空、错误、禁用状态。
+- 明确要避免的视觉问题。
+
+预期产物：
+
+- experience-design 文档，例如 `docs/uiux/README.md`、`docs/uiux/03-视觉规范.md`。
+- 线框图或高保真样张。
+- 页面覆盖索引。
+- 组件和交互状态说明。
+- 必要时导出重点页面截图。
+
+门禁检查：
+
+- UI 原型不是为了好看，而是让 coding agent 看懂产品逻辑、布局优先级、文案语气和边界状态。
+- 如果原型暴露需求缺失或流程不顺，回到 PRD。
+- 除非用户明确改 scope，否则不要让视觉探索覆盖产品范围。
+
+### 3. 准备开发：先固化 `docs/`
+
+目标：在源码实现前，建立能约束开发的耐久上下文。
+
+创建或更新核心文档：
+
+- `docs/prd/`：产品定位、用户痛点、MVP、页面清单、核心流程、验收标准。
+- `docs/uiux/`：主题、组件规则、关键交互、加载/空/错误状态。
+- `docs/architecture.md`：技术栈、目录结构、数据模型、服务边界、AI 引用机制、开发约束、不变量、禁止破坏的逻辑、验收标准。
+- `TODO.md`：有顺序的实现 backlog。
+- `docs/adr/`：关键技术取舍。
+
+门禁检查：
+
+- 这些文档不是形式，它们限制后续 AI 不要乱写、乱改、乱扩展。
+- 如果架构解释不了某个功能该放哪里，停留在本阶段。
+- 如果 TODO 不能独立实现，先拆分再编码。
+
+### 4. 正式开发：小步迭代
+
+目标：一次只实现一个清晰单元，验证后提交。
+
+每轮迭代：
+
+- 从 `TODO.md` 取下一项。
+- 明确修改目标。
+- 遵守允许改动范围。
+- 只实现这个单元。
+- 检查相关的加载、空、错误和边界状态。
+- 运行最小但有效的验证。
+- 如果实现改变了契约，同步更新文档或 TODO。
+- 一个验证过的切片对应一次提交。
+
+建议提交节奏：
+
+```bash
+git add <changed-files>
+git commit -m "feat: xxx"
+```
+
+遵守仓库已有提交规范。如果没有规范且用户偏好中文，使用简洁的简体中文提交信息。
+
+门禁检查：
+
+- 一次提交应该对应一个可 review 的行为切片，而不是一堆无关改动。
+- 如果下一次 AI 会看不懂当前进展，停止前先更新 `TODO.md`、`README` 或架构说明。
+- 如果代码变乱，从文档和设计决策回溯，不靠猜测绕症状。
+
+### 5. 部署上线：最后反扫文档
+
+目标：上线前让项目可理解、可部署、可恢复上下文。
+
+推送或部署前反扫：
+
+- 当前真实目录结构。
+- 部署方式。
+- 环境变量。
+- 核心模块职责。
+- 构建、测试、检查命令。
+- 已知限制。
+- 回滚或恢复说明。
+
+预期更新：
+
+- `docs/architecture.md` 反映当前实现。
+- `README.md` 说明安装、运行、构建、部署、验证。
+- `TODO.md` 区分已完成、下一步、延期项和已知风险。
+- 发布/部署说明准确。
+
+门禁检查：
+
+- 不依赖聊天上下文部署。
+- 下一个 AI 或开发者只看仓库文件就能接手。
+- 如果最终反扫发现文档漂移，先更新文档再发布。
+
+## 进度审计输出
+
+当用户要求整理当前进展或阶段 TODO 时，使用这个结构：
+
+```markdown
+**当前阶段**
+阶段 X：<name>。<one-line reason from repo artifacts>
+
+**已完成**
+- <artifact or decision>
+
+**待办**
+- P0: <must do next>
+- P1: <important but can follow>
+- P2: <later>
+
+**阶段门禁**
+- <what must be true before moving on>
+
+**风险**
+- <missing doc, unclear scope, unverified assumption, or drift>
+```
+
+进展判断必须基于证据。说明结论来自当前仓库检查、截图、还是记忆。
+
+## 反模式
+
+避免这些失败模式：
+
+- product-requirements 和 experience-design 还不能约束实现时就开始写代码。
+- 把 UI 样张当海报，而不是产品状态说明。
+- 生成很多页面但没有页面覆盖索引。
+- 没有 `TODO.md`，导致下一次对话只能猜。
+- 实现后不更新文档，造成 docs 漂移。
+- 很多无关改动挤成一个大提交。
+- 把聊天记录当唯一产品真相。
+- 部署前跳过 README/架构文档清理。
+
+## 最小命令检查清单
+
+使用适合当前仓库的命令。常见检查：
+
+```bash
+git status --short
+rg --files docs
+rg --files
+git diff --check
+```
+
+如果涉及前端或生成式 UI 资产，还要使用仓库现有的渲染、导出和截图验证命令。涉及代码时，运行当前可用的最小有效 typecheck、lint、test 或 build。
