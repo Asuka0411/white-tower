@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check stage-gate template syntax
+        run: node --check templates/scripts/check-stage-gate.mjs
+
+      - name: Run stage-gate template smoke test
+        run: node templates/scripts/check-stage-gate.mjs
