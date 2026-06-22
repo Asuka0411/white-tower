@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 - Added white-tower skill version metadata for cross-project self-checks.
 - Namespaced White Tower control files under `docs/white-tower/`.
+- Added an installed-skill update script.
 
 ## 0.1.0 - 2026-06-22
 

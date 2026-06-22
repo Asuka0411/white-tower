@@ -41,15 +41,19 @@
 Clone this repository, then copy it into your local Codex skills directory:
 
 ```bash
-git clone https://github.com/Asuka0411/white-tower.git
-mkdir -p ~/.codex/skills/white-tower
-cp -R white-tower/SKILL.md white-tower/agents ~/.codex/skills/white-tower/
+git clone https://github.com/Asuka0411/white-tower.git ~/.codex/skills/white-tower
 ```
 
 Restart Codex or start a new session. You can then invoke it explicitly:
 
 ```text
 Use $white-tower 检查当前项目阶段，给出下一步 TODO 和门禁状态。
+```
+
+Update the installed skill:
+
+```bash
+bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh
 ```
 
 ### Bootstrap a project with gate templates
