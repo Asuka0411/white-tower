@@ -28,6 +28,7 @@
 │   ├── docs/requirements/template/  # 单需求包模板
 │   ├── docs/white-tower/stage-gates.md # 阶段门禁定义模板
 │   ├── docs/workstreams/            # 工作流模板
+│   ├── prompts/task-dispatch.md      # 自动调度多 agent 执行提示词
 │   ├── scripts/check-stage-gate.mjs # 阶段门禁检查脚本模板
 │   └── scripts/check-requirement-package.mjs # 需求包检查脚本模板
 ├── CONTRIBUTING.md
@@ -72,6 +73,22 @@ bash scripts/install-white-tower.sh omp
 ```
 
 See `docs/adapters.md` for target paths and environment overrides.
+
+### Dispatch runnable tasks
+
+Inside a project that already has White Tower status, workstreams, and requirement-package tasks:
+
+```text
+Use $white-tower dispatch max_parallel=2
+```
+
+The agent should read the project state, run available gates, find runnable tasks, choose the available executor, and start worker agents when the environment supports multi-agent execution. If no multi-agent tool is available, it falls back to sequential execution.
+
+For OMP:
+
+```bash
+omp --cwd /path/to/project --skills=white-tower "Use $white-tower dispatch max_parallel=2"
+```
 
 ### Bootstrap a project with gate templates
 

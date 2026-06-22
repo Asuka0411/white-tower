@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added a `dispatch` trigger for automatic environment-aware multi-agent task execution.
+- Added a task-dispatch prompt template.
 - Added technical-plan governance fields for requirement packages.
 - Added a default UI/data separation and layer-boundary section to technical planning.
 - Added task traceability fields that link tasks back to technical-plan sections.

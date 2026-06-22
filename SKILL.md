@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.3.0-dev
+version: 0.4.0-dev
 codename: white-tower
 updated_at: 2026-06-22
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, stage gates, repository guardrails, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, requirement packages, Gitflow branch checks, pre-commit, pre-push, CI, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.3.0-dev
+version: 0.4.0-dev
 codename: white-tower
 updated_at: 2026-06-22
 branch pattern: <type>_<id>_<short_name>
@@ -48,6 +48,14 @@ bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
 
 如果安装目录不是 git clone，或者有本地未提交改动，停止更新并说明原因。更新完成后提示用户新开 Codex 会话。
 
+自动调度多 agent 编码时使用：
+
+```text
+Use $white-tower dispatch max_parallel=2
+```
+
+这条指令必须自动完成环境判断、任务选择和执行器选择。如果门禁通过且存在 runnable tasks，不要只输出方案，要开始派发任务。
+
 常见请求和处理方式：
 
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 阶段门禁 / 风险”输出。
@@ -55,6 +63,7 @@ bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
 - “开始开发 / 初始化项目 / 写功能”：先运行门禁检查；如果仍处于 `source-locked`，不要创建源码目录或工程文件。
+- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和需求包任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
 - “提交代码”：先运行 `node scripts/check-stage-gate.mjs --staged`、仓库既有检查和 `git diff --check`。
 - “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/white-tower/status.md`、`TODO.md` 和必要 architecture-decision。
 
@@ -124,6 +133,69 @@ bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
 - 需要删除、重写或回滚用户已有改动。
 - 门禁要求与用户明确指令冲突。
 - 需要引入重大依赖、服务端、账号、云同步、公网访问或付费服务。
+
+### 自动调度：`dispatch`
+
+当用户说 `Use $white-tower dispatch`、`自动调度`、`开始多 agent 编码` 或等价表达时，按以下流程直接执行：
+
+1. **读取环境**：
+   - `git status --short`
+   - `docs/white-tower/status.md`
+   - `docs/white-tower/stage-gates.md`
+   - `TODO.md`
+   - `docs/workstreams/**`
+   - `docs/requirements/**/00-meta.md`
+   - `docs/requirements/**/03-技术方案.md`
+   - `docs/requirements/**/04-任务拆解.md`
+2. **检查门禁**：
+   - 如果存在 `scripts/check-stage-gate.mjs`，先运行。
+   - 如果存在 `scripts/check-requirement-package.mjs`，先运行。
+   - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，才执行编码任务。
+3. **选择 runnable tasks**：
+   - `status=planned`。
+   - `depends_on` 全部完成或为 `none`。
+   - `source_plan_sections` 能在 `03-技术方案.md` 中找到。
+   - `allowed_paths`、`blocked_paths`、`verification`、`merge_target` 均已声明。
+   - `can_parallel=true` 且 `allowed_paths` 不与其他并发任务冲突时才可并发。
+   - `conflict_risk=high`、`contract_changes != none` 或涉及 shared schema / router / migration 的任务顺序执行。
+4. **选择执行器**：
+   - 如果当前环境有 Codex 多 agent 工具，优先使用 worker subagents；每个 worker 只负责一个任务和明确的 `allowed_paths`。
+   - 如果当前环境是 OMP，或可用 OMP `task` 子代理工具，使用 OMP task agents。
+   - 如果没有可用子代理工具，降级为当前 agent 顺序执行 runnable tasks。
+5. **执行要求**：
+   - 默认 `max_parallel=2`，除非用户显式传入其他值。
+   - 每个 worker 必须拿到完整任务上下文，而不是自己重新猜计划。
+   - worker 不得修改 `blocked_paths`，不得回滚其他 worker 的改动。
+   - worker 完成后必须运行该任务的 `verification`。
+   - 每个任务完成后先做 spec review，再做 quality review。
+   - 最后由主控整合结果，更新 `04-任务拆解.md`、`05-验收记录.md` 和必要全局文档。
+
+派发 worker 时使用这种上下文结构：
+
+```text
+You are implementing one White Tower task. You are not alone in this repo.
+Do not revert or overwrite changes made by other workers.
+
+Requirement package: <path>
+Task id: <TASK-ID>
+Branch: <branch>
+Depends on: <depends_on>
+Allowed paths: <allowed_paths>
+Blocked paths: <blocked_paths>
+Source technical sections: <source_plan_sections>
+Deliverable: <deliverable>
+Acceptance slice: <acceptance_slice>
+Contract changes: <contract_changes>
+Verification: <verification>
+
+Read these files first:
+- <00-meta.md>
+- <01-需求文档.md>
+- <03-技术方案.md>
+- <04-任务拆解.md>
+
+Implement only this task, run verification, then report changed files and result.
+```
 
 ## 核心规则
 
