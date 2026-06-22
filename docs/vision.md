@@ -127,8 +127,13 @@ docs/requirements/2026/Q3/in-progress/012_import_folder/
 
 必须覆盖：
 
+- 技术方案状态：draft、review、approved、superseded
+- 迁移等级：none、compatible、breaking
+- 技术目标
 - 当前代码风格和目录约束
+- 架构偏好与分层约束，例如 UI 与数据分离、MVVM 或等价状态协调模式
 - 影响模块
+- 非影响模块
 - 数据结构
 - API 或函数边界
 - 状态流
@@ -136,8 +141,13 @@ docs/requirements/2026/Q3/in-progress/012_import_folder/
 - 测试策略
 - 兼容性和迁移
 - 风险和回滚
+- 未解决问题
 
 如果技术方案涉及长期架构取舍，必须新增或更新 `docs/adr/*.md`。
+
+如果 `migration_level=breaking`，必须有 ADR。技术方案在 `plan_status=approved` 前，`未解决问题` 必须为 `none`。
+
+默认偏好是 UI 与数据分离：UI 层只负责展示、交互入口和状态渲染；ViewModel、Presenter、Controller 或等价状态协调层负责把领域状态转换成 UI 状态；数据访问、持久化、网络请求和外部服务放在数据层或服务层。小 UI 改动不应穿透修改数据层；如果必须穿透，技术方案必须写清原因和影响范围。
 
 如果该需求改变了项目技术事实，完成后必须反写 `docs/product/TECH.md`。
 
@@ -154,6 +164,11 @@ docs/requirements/2026/Q3/in-progress/012_import_folder/
 - status
 - depends_on
 - can_parallel
+- source_plan_sections
+- deliverable
+- acceptance_slice
+- contract_changes
+- review_focus
 - allowed_paths
 - blocked_paths
 - verification
@@ -161,7 +176,7 @@ docs/requirements/2026/Q3/in-progress/012_import_folder/
 - conflict_risk
 - commit_policy
 
-没有 `allowed_paths`、`verification`、`depends_on` 的任务不能派给 agent。
+没有 `source_plan_sections`、`deliverable`、`acceptance_slice`、`allowed_paths`、`verification`、`depends_on` 的任务不能派给 agent。`source_plan_sections` 必须能在 `03-技术方案.md` 中找到对应章节。
 
 ## Gitflow 和分支命名
 

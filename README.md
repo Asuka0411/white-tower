@@ -10,6 +10,8 @@
 - **仓库内状态源**：用 `docs/white-tower/status.md`、`docs/white-tower/stage-gates.md`、`TODO.md` 记录当前阶段和允许动作。
 - **可执行检查**：提供 `check-stage-gate.mjs` 模板，用确定性脚本拦截越级源码改动。
 - **工作流隔离**：用 `docs/workstreams/` 管理并行需求，每个需求声明允许路径、阻塞路径和验收方式。
+- **技术方案治理**：需求级技术方案声明状态、迁移等级、分层约束、影响范围、测试策略、回滚方案和 ADR 要求。
+- **任务追溯**：任务切片必须引用技术方案章节，并声明交付物、验收切片、契约变更和评审重点。
 - **AI 友好交接**：让下一次对话、下一位开发者或下一个 agent 只看仓库文件就能恢复上下文。
 
 ## Repository Layout
@@ -144,11 +146,14 @@ release_2026q3_001
 hotfix_018_login_crash
 ```
 
-The requirement package checker validates package structure, task fields, and branch naming:
+The requirement package checker validates package structure, technical plan readiness, task traceability, and branch naming:
 
 ```bash
 node templates/scripts/check-requirement-package.mjs examples/requirement-package-demo --branch=feat_012_import_folder
+node examples/requirement-package-demo/scripts/run-edge-cases.mjs
 ```
+
+It checks that each `03-技术方案.md` declares `plan_status` and `migration_level`, fills required technical sections, records layer-boundary constraints such as UI/data separation, resolves open questions before approval, and links breaking migrations to ADRs. It also checks that each task in `04-任务拆解.md` references technical plan sections and declares deliverable, acceptance slice, contract changes, review focus, allowed paths, and verification commands.
 
 ## Stage Model
 

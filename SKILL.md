@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.2.0-dev
+version: 0.3.0-dev
 codename: white-tower
 updated_at: 2026-06-22
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, stage gates, repository guardrails, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, requirement packages, Gitflow branch checks, pre-commit, pre-push, CI, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.2.0-dev
+version: 0.3.0-dev
 codename: white-tower
 updated_at: 2026-06-22
 branch pattern: <type>_<id>_<short_name>
@@ -272,6 +272,17 @@ node scripts/check-stage-gate.mjs --staged
 - todo-slice 回答“下一步具体改什么、怎么验证、是否能独立提交”。
 
 如果 TODO 找不到对应 workstream，先补 workstream。如果 workstream 找不到产品需求 / 技术方案依据，先补上游文档。
+
+技术方案必须先能约束实现，再进入任务派发：
+
+- `03-技术方案.md` 声明 `plan_status` 和 `migration_level`。
+- 必填章节包括技术目标、当前代码风格、架构偏好与分层约束、影响范围、数据结构、API / 函数边界、状态流、错误处理、测试策略、兼容性和迁移、风险和回滚。
+- 默认架构偏好是 UI 与数据分离：UI 层只负责展示、交互入口和状态渲染；ViewModel、Presenter、Controller 或等价状态协调层负责把领域状态转换成 UI 状态；数据访问、持久化、网络请求和外部服务放在数据层或服务层。
+- 小 UI 改动不应穿透修改数据层；如果必须穿透，技术方案必须写清原因和影响范围。
+- `plan_status=approved` 时，`未解决问题` 必须为 `none`。
+- `migration_level=breaking` 时，必须新增或更新 ADR。
+- `04-任务拆解.md` 的每个任务必须声明 `source_plan_sections`、`deliverable`、`acceptance_slice`、`contract_changes` 和 `review_focus`。
+- `source_plan_sections` 必须能在同需求包的 `03-技术方案.md` 中找到对应章节。
 
 ### 需求包模型
 

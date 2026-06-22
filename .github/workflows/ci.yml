@@ -22,5 +22,14 @@ jobs:
       - name: Check stage-gate template syntax
         run: node --check templates/scripts/check-stage-gate.mjs
 
+      - name: Check requirement-package template syntax
+        run: node --check templates/scripts/check-requirement-package.mjs
+
       - name: Run stage-gate template smoke test
         run: node templates/scripts/check-stage-gate.mjs
+
+      - name: Run requirement-package demo check
+        run: node templates/scripts/check-requirement-package.mjs examples/requirement-package-demo --branch=feat_012_import_folder
+
+      - name: Run requirement-package edge cases
+        run: node examples/requirement-package-demo/scripts/run-edge-cases.mjs

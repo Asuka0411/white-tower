@@ -87,6 +87,99 @@ const cases = [
     },
   },
   {
+    name: "missing technical plan section body fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/03-技术方案.md",
+        (text) => {
+          const lines = text.split(/\r?\n/);
+          const start = lines.findIndex((line) => line === "## 技术目标");
+          const end = lines.findIndex((line, index) => index > start && line.startsWith("## "));
+          return [
+            ...lines.slice(0, start + 1),
+            "",
+            ...lines.slice(end),
+          ].join("\n");
+        },
+      );
+    },
+  },
+  {
+    name: "empty technical plan fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/03-技术方案.md",
+        () => "",
+      );
+    },
+  },
+  {
+    name: "invalid migration level fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/03-技术方案.md",
+        (text) => text.replace("migration_level: compatible", "migration_level: risky"),
+      );
+    },
+  },
+  {
+    name: "approved plan with open questions fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/03-技术方案.md",
+        (text) => text
+          .replace("plan_status: review", "plan_status: approved")
+          .replace("- none\n\n## 需要新增或更新的 ADR", "- 是否需要后台重试队列。\n\n## 需要新增或更新的 ADR"),
+      );
+    },
+  },
+  {
+    name: "breaking migration without ADR fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/03-技术方案.md",
+        (text) => text
+          .replace("migration_level: compatible", "migration_level: breaking")
+          .replace("- `docs/adr/0001-import-snapshot.md`", "- none"),
+      );
+    },
+  },
+  {
+    name: "missing task plan section trace fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/04-任务拆解.md",
+        (text) => text.replace(
+          /source_plan_sections:\n(?:- .+\n)+deliverable:/,
+          "source_plan_sections:\ndeliverable:",
+        ),
+      );
+    },
+  },
+  {
+    name: "unknown task plan section trace fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/requirements/2026/Q3/in-progress/012_import_folder/04-任务拆解.md",
+        (text) => text.replace("- 数据结构", "- 不存在的技术章节"),
+      );
+    },
+  },
+  {
     name: "task branch id mismatch fails",
     expectPass: false,
     mutate(root) {

@@ -51,11 +51,43 @@ function listMarkdownDirs(relativeDir) {
 }
 
 function sectionBody(markdown, heading) {
-  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = markdown.match(
-    new RegExp(`^## ${escaped}\\s*\\n([\\s\\S]*?)(?=\\n## |\\n# |$)`, "m"),
-  );
-  return match ? match[1].trim() : "";
+  const lines = markdown.split(/\r?\n/);
+  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
+  if (start === -1) {
+    return "";
+  }
+
+  const body = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{1,6}\s+/.test(line)) {
+      break;
+    }
+    body.push(line);
+  }
+  return body.join("\n").trim();
+}
+
+function hasSection(markdown, heading) {
+  return markdown
+    .split(/\r?\n/)
+    .some((line) => line.trim() === `## ${heading}`);
+}
+
+function isNone(value) {
+  const normalized = value.trim().toLowerCase();
+  return normalized === "" || normalized === "none" || normalized === "- none";
+}
+
+function nonNoneList(items) {
+  return items.filter((item) => !isNone(item));
+}
+
+function markdownListItems(body) {
+  return body
+    .split(/\r?\n/)
+    .map((line) => line.match(/^\s*-\s+(.+)$/))
+    .filter(Boolean)
+    .map((match) => match[1].trim());
 }
 
 function taskSections(markdown) {
@@ -126,6 +158,22 @@ function validBranch(name) {
 }
 
 const errors = [];
+const requiredTechnicalSections = [
+  "技术目标",
+  "当前代码风格",
+  "架构偏好与分层约束",
+  "影响范围",
+  "数据结构",
+  "API / 函数边界",
+  "状态流",
+  "错误处理",
+  "测试策略",
+  "兼容性和迁移",
+  "风险和回滚",
+];
+
+const validPlanStatuses = new Set(["draft", "review", "approved", "superseded"]);
+const validMigrationLevels = new Set(["none", "compatible", "breaking"]);
 
 if (branchName && !validBranch(branchName)) {
   errors.push(`Invalid branch name: ${branchName}. Use lowercase underscores, e.g. feat_012_import_folder.`);
@@ -181,6 +229,47 @@ for (const packageDir of packages) {
     continue;
   }
 
+  const technicalPlanPath = `${packageDir}/03-技术方案.md`;
+  const technicalPlan = exists(technicalPlanPath) ? read(technicalPlanPath) : "";
+  const planStatus = field(technicalPlan, "plan_status");
+  const migrationLevel = field(technicalPlan, "migration_level");
+
+  if (!technicalPlan.trim()) {
+    errors.push(`${technicalPlanPath} must not be empty.`);
+  }
+
+  if (!planStatus) {
+    errors.push(`${technicalPlanPath} must declare plan_status.`);
+  } else if (!validPlanStatuses.has(planStatus)) {
+    errors.push(`${technicalPlanPath} plan_status=${planStatus} must be one of draft, review, approved, superseded.`);
+  }
+
+  if (!migrationLevel) {
+    errors.push(`${technicalPlanPath} must declare migration_level.`);
+  } else if (!validMigrationLevels.has(migrationLevel)) {
+    errors.push(`${technicalPlanPath} migration_level=${migrationLevel} must be one of none, compatible, breaking.`);
+  }
+
+  for (const section of requiredTechnicalSections) {
+    if (!hasSection(technicalPlan, section)) {
+      errors.push(`${technicalPlanPath} must include ## ${section}.`);
+    } else if (!sectionBody(technicalPlan, section)) {
+      errors.push(`${technicalPlanPath} ## ${section} must not be empty.`);
+    }
+  }
+
+  const openQuestions = sectionBody(technicalPlan, "未解决问题");
+  if (planStatus === "approved" && !isNone(openQuestions)) {
+    errors.push(`${technicalPlanPath} cannot be approved while ## 未解决问题 is not none.`);
+  }
+
+  if (migrationLevel === "breaking") {
+    const adrItems = nonNoneList(markdownListItems(sectionBody(technicalPlan, "需要新增或更新的 ADR")));
+    if (!adrItems.length) {
+      errors.push(`${technicalPlanPath} migration_level=breaking requires at least one ADR in ## 需要新增或更新的 ADR.`);
+    }
+  }
+
   const taskPlan = read(`${packageDir}/04-任务拆解.md`);
   const tasks = taskSections(taskPlan);
   if (!tasks.length) {
@@ -193,6 +282,11 @@ for (const packageDir of packages) {
     const mergeTarget = field(task.body, "merge_target");
     const allowedPaths = listField(task.body, "allowed_paths");
     const verification = listField(task.body, "verification");
+    const sourcePlanSections = nonNoneList(listField(task.body, "source_plan_sections"));
+    const deliverable = field(task.body, "deliverable");
+    const acceptanceSlice = field(task.body, "acceptance_slice");
+    const contractChanges = field(task.body, "contract_changes");
+    const reviewFocus = field(task.body, "review_focus");
 
     if (!branch) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare branch.`);
@@ -213,6 +307,26 @@ for (const packageDir of packages) {
     }
     if (!verification.length) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare verification.`);
+    }
+    if (!sourcePlanSections.length) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare source_plan_sections.`);
+    }
+    for (const section of sourcePlanSections) {
+      if (technicalPlan && !hasSection(technicalPlan, section)) {
+        errors.push(`${packageDir}/04-任务拆解.md ${task.id} references missing technical plan section: ${section}.`);
+      }
+    }
+    if (!deliverable) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare deliverable.`);
+    }
+    if (!acceptanceSlice) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare acceptance_slice.`);
+    }
+    if (!contractChanges) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare contract_changes.`);
+    }
+    if (!reviewFocus) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare review_focus.`);
     }
   }
 
