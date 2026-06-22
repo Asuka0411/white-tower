@@ -43,7 +43,7 @@ Use $white-tower 更新白塔
 执行要求：
 
 ```bash
-bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh
+bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
 ```
 
 如果安装目录不是 git clone，或者有本地未提交改动，停止更新并说明原因。更新完成后提示用户新开 Codex 会话。
@@ -51,7 +51,8 @@ bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh
 常见请求和处理方式：
 
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 阶段门禁 / 风险”输出。
-- “更新白塔 / 更新 white-tower / 更新这个 skill”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh`，输出更新结果和版本信息。
+- “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
+- “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
 - “开始开发 / 初始化项目 / 写功能”：先运行门禁检查；如果仍处于 `source-locked`，不要创建源码目录或工程文件。
 - “提交代码”：先运行 `node scripts/check-stage-gate.mjs --staged`、仓库既有检查和 `git diff --check`。

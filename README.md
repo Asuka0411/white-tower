@@ -53,8 +53,23 @@ Use $white-tower 检查当前项目阶段，给出下一步 TODO 和门禁状态
 Update the installed skill:
 
 ```bash
-bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh
+bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
+bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all
 ```
+
+`all` updates every installed git clone and skips targets that have not been installed yet.
+
+Install to other local agent tools:
+
+```bash
+bash scripts/install-white-tower.sh all
+bash scripts/install-white-tower.sh claude
+bash scripts/install-white-tower.sh hermes
+bash scripts/install-white-tower.sh agents
+bash scripts/install-white-tower.sh omp
+```
+
+See `docs/adapters.md` for target paths and environment overrides.
 
 ### Bootstrap a project with gate templates
 
