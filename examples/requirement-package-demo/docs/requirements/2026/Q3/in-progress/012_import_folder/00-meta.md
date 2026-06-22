@@ -1,0 +1,20 @@
+# 需求元信息
+
+requirement_id: 012
+title: 导入文件夹增量扫描
+status: in-progress
+priority: P1
+owner: white-tower-demo
+created_at: 2026-06-22
+target_release: 2026q3
+source_discussion: demo
+human_review_required: true
+
+linked_branches:
+- feat_012_import_folder
+- feat_012_scan_diff
+
+## 状态历史
+
+- planned: 2026-06-20
+- in-progress: 2026-06-22

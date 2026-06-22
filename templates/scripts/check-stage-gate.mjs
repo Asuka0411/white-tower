@@ -10,12 +10,30 @@ function read(path) {
 }
 
 function gitChangedPaths() {
-  const args = stagedOnly
-    ? ["diff", "--name-only", "--cached"]
-    : ["diff", "--name-only"];
+  const commands = stagedOnly
+    ? [["diff", "--name-only", "--cached"]]
+    : [
+        ["diff", "--name-only", "--cached"],
+        ["diff", "--name-only"],
+        ["ls-files", "--others", "--exclude-standard"],
+      ];
 
-  const output = execFileSync("git", args, { encoding: "utf8" }).trim();
-  return output ? output.split(/\r?\n/).filter(Boolean) : [];
+  const paths = new Set();
+  for (const args of commands) {
+    const output = execFileSync(
+      "git",
+      ["-c", "core.quotePath=false", ...args],
+      { encoding: "utf8" },
+    ).trim();
+
+    if (output) {
+      for (const path of output.split(/\r?\n/).filter(Boolean)) {
+        paths.add(path);
+      }
+    }
+  }
+
+  return [...paths];
 }
 
 function field(markdown, name) {

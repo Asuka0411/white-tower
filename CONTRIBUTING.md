@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving Product Stage Gates.
+Thanks for improving 白塔协议.
 
 ## Development Principles
 

@@ -1,6 +1,6 @@
 # Project Status
 
-current_stage: 3-prepare-development
+current_stage: 3-准备开发
 
 gate_mode: source-locked
 

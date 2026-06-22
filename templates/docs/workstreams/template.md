@@ -4,7 +4,7 @@ workstream_id: <kebab-case-id>
 
 status: draft
 
-stage: 3-prepare-development
+stage: 3-准备开发
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Describe the product requirement, user flow, or technical preparation this works
 ## Inputs
 
 - product requirements:
-- experience design:
+- interface design:
 - technical plan:
 - architecture decisions:
 
