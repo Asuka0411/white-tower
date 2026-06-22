@@ -22,6 +22,9 @@ jobs:
       - name: Check stage-gate template syntax
         run: node --check templates/scripts/check-stage-gate.mjs
 
+      - name: Check migration template syntax
+        run: node --check templates/scripts/migrate-white-tower.mjs
+
       - name: Check requirement-package template syntax
         run: node --check templates/scripts/check-requirement-package.mjs
 

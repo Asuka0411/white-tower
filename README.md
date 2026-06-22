@@ -101,8 +101,28 @@ cp /path/to/white-tower/templates/docs/white-tower/status.md docs/white-tower/st
 cp /path/to/white-tower/templates/docs/white-tower/stage-gates.md docs/white-tower/stage-gates.md
 cp -R /path/to/white-tower/templates/docs/workstreams docs/
 cp /path/to/white-tower/templates/scripts/check-stage-gate.mjs scripts/check-stage-gate.mjs
+cp /path/to/white-tower/templates/scripts/migrate-white-tower.mjs scripts/migrate-white-tower.mjs
 node scripts/check-stage-gate.mjs
 ```
+
+### Migrate legacy project data
+
+For older White Tower projects, run a dry-run first:
+
+```bash
+node scripts/migrate-white-tower.mjs
+```
+
+Apply safe migrations:
+
+```bash
+node scripts/migrate-white-tower.mjs --write
+```
+
+The migration script creates workstream state directories, moves flat workstream
+files into the directory matching their `status`, updates Markdown path
+references, and warns when a legacy PRD/workstream layout cannot be converted
+into full requirement packages automatically.
 
 ## Workflow
 

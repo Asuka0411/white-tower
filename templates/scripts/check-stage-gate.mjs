@@ -73,6 +73,7 @@ if (!status) {
     "docs/workstreams/done/.gitkeep",
     "docs/workstreams/archived/.gitkeep",
     "scripts/check-stage-gate.mjs",
+    "scripts/migrate-white-tower.mjs",
   ]);
 
   const blocked = changed.filter((path) => !allowedBootstrap.has(path));
