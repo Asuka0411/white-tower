@@ -38,6 +38,20 @@ docs/product/TECH.md    # 当前技术总览、模块边界、质量命令
 docs/adr/               # 全局架构决策记录
 ```
 
+workstream 按状态目录管理，避免已完成任务继续混在待执行队列中：
+
+```text
+docs/workstreams/
+├── draft/
+├── ready/
+├── active/
+├── blocked/
+├── done/
+└── archived/
+```
+
+`status` 必须和所在目录一致。完成后移入 `done/`，归档后移入 `archived/` 并写明原因。
+
 需求包按时间和状态组织：
 
 ```text

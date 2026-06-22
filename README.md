@@ -27,7 +27,7 @@
 │   ├── docs/white-tower/status.md   # 当前阶段状态模板
 │   ├── docs/requirements/template/  # 单需求包模板
 │   ├── docs/white-tower/stage-gates.md # 阶段门禁定义模板
-│   ├── docs/workstreams/            # 工作流模板
+│   ├── docs/workstreams/            # 工作流模板和状态目录
 │   ├── prompts/task-dispatch.md      # 自动调度多 agent 执行提示词
 │   ├── scripts/check-stage-gate.mjs # 阶段门禁检查脚本模板
 │   └── scripts/check-requirement-package.mjs # 需求包检查脚本模板
@@ -95,7 +95,7 @@ omp --cwd /path/to/project --skills=white-tower "Use $white-tower dispatch max_p
 Inside the target project:
 
 ```bash
-mkdir -p docs/white-tower docs/workstreams scripts
+mkdir -p docs/white-tower docs/workstreams/{draft,ready,active,blocked,done,archived} scripts
 cp /path/to/white-tower/templates/TODO.md TODO.md
 cp /path/to/white-tower/templates/docs/white-tower/status.md docs/white-tower/status.md
 cp /path/to/white-tower/templates/docs/white-tower/stage-gates.md docs/white-tower/stage-gates.md
@@ -171,6 +171,19 @@ node examples/requirement-package-demo/scripts/run-edge-cases.mjs
 ```
 
 It checks that each `03-技术方案.md` declares `plan_status` and `migration_level`, fills required technical sections, records layer-boundary constraints such as UI/data separation, resolves open questions before approval, and links breaking migrations to ADRs. It also checks that each task in `04-任务拆解.md` references technical plan sections and declares deliverable, acceptance slice, contract changes, review focus, allowed paths, and verification commands.
+
+Workstreams use state directories:
+
+```text
+docs/workstreams/draft/
+docs/workstreams/ready/
+docs/workstreams/active/
+docs/workstreams/blocked/
+docs/workstreams/done/
+docs/workstreams/archived/
+```
+
+Completed workstreams move to `done/`. Abandoned workstreams move to `archived/` with an archive reason. Do not keep completed or archived workstreams at the top level.
 
 ## Stage Model
 

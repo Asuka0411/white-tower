@@ -6,9 +6,22 @@ status: draft
 
 stage: 3-准备开发
 
+prd_request:
+
+archive_reason:
+
 ## Purpose
 
 Describe the product requirement, user flow, or technical preparation this workstream covers.
+
+Place this file under the directory that matches `status`, for example:
+
+- `docs/workstreams/draft/<id>.md`
+- `docs/workstreams/ready/<id>.md`
+- `docs/workstreams/active/<id>.md`
+- `docs/workstreams/blocked/<id>.md`
+- `docs/workstreams/done/<id>.md`
+- `docs/workstreams/archived/<id>.md`
 
 ## Inputs
 

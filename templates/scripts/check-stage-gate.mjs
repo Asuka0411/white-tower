@@ -66,6 +66,12 @@ if (!status) {
     "TODO.md",
     "docs/workstreams/README.md",
     "docs/workstreams/template.md",
+    "docs/workstreams/draft/.gitkeep",
+    "docs/workstreams/ready/.gitkeep",
+    "docs/workstreams/active/.gitkeep",
+    "docs/workstreams/blocked/.gitkeep",
+    "docs/workstreams/done/.gitkeep",
+    "docs/workstreams/archived/.gitkeep",
     "scripts/check-stage-gate.mjs",
   ]);
 

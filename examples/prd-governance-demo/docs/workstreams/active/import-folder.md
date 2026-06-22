@@ -24,7 +24,7 @@ prd_request: docs/prd/requests/2026/Q3/in-progress/import-folder.md
 - tests/import/**
 - docs/prd/README.md
 - docs/prd/requests/2026/Q3/in-progress/import-folder.md
-- docs/workstreams/import-folder.md
+- docs/workstreams/active/import-folder.md
 - TODO.md
 
 ## Blocked Paths

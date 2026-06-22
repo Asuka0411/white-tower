@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added workstream lifecycle directories and rules to prevent completed workstreams from staying in the active queue.
+- Added workstream status-directory validation to the PRD governance demo.
 - Added a `dispatch` trigger for automatic environment-aware multi-agent task execution.
 - Added a task-dispatch prompt template.
 - Added technical-plan governance fields for requirement packages.

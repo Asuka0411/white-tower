@@ -43,5 +43,5 @@ stage_name: 正式开发
 
 ## 关联文档
 
-- workstream: `docs/workstreams/import-folder.md`
+- workstream: `docs/workstreams/active/import-folder.md`
 - TODO: `TODO.md#import-folder`

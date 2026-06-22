@@ -21,4 +21,4 @@ blocked_actions:
 
 current_focus:
 - docs/prd/requests/2026/Q3/in-progress/import-folder.md
-- docs/workstreams/import-folder.md
+- docs/workstreams/active/import-folder.md

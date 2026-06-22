@@ -2,8 +2,10 @@
 
 import {
   cpSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -94,7 +96,7 @@ const cases = [
     expectPass: false,
     mutate(root) {
       mutate(
-        "docs/workstreams/import-folder.md",
+        "docs/workstreams/active/import-folder.md",
         (text) =>
           text.replace(
             "prd_request: docs/prd/requests/2026/Q3/in-progress/import-folder.md",
@@ -142,9 +144,20 @@ const cases = [
     expectPass: false,
     mutate(root) {
       mutate(
-        "docs/workstreams/import-folder.md",
+        "docs/workstreams/active/import-folder.md",
         (text) => text.replace("status: active", "status: draft"),
         root,
+      );
+    },
+  },
+  {
+    name: "workstream in wrong state directory fails",
+    expectPass: false,
+    mutate(root) {
+      mkdirSync(path.join(root, "docs/workstreams/draft"), { recursive: true });
+      renameSync(
+        path.join(root, "docs/workstreams/active/import-folder.md"),
+        path.join(root, "docs/workstreams/draft/import-folder.md"),
       );
     },
   },
@@ -153,10 +166,10 @@ const cases = [
     expectPass: false,
     mutate(root) {
       mutate(
-        "docs/workstreams/import-folder.md",
+        "docs/workstreams/active/import-folder.md",
         (text) =>
           text.replace(
-            "## Allowed Paths\n\n- src/import/**\n- src/index/**\n- tests/import/**\n- docs/prd/README.md\n- docs/prd/requests/2026/Q3/in-progress/import-folder.md\n- docs/workstreams/import-folder.md\n- TODO.md",
+            "## Allowed Paths\n\n- src/import/**\n- src/index/**\n- tests/import/**\n- docs/prd/README.md\n- docs/prd/requests/2026/Q3/in-progress/import-folder.md\n- docs/workstreams/active/import-folder.md\n- TODO.md",
             "## Allowed Paths\n\n",
           ),
         root,
@@ -168,7 +181,7 @@ const cases = [
     expectPass: false,
     mutate(root) {
       mutate(
-        "docs/workstreams/import-folder.md",
+        "docs/workstreams/active/import-folder.md",
         (text) =>
           text.replace(
             "## Verification\n\n- `npm test -- import`\n- `npm run lint`\n- `white-tower check --staged`",

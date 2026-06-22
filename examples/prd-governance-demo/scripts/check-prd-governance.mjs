@@ -87,6 +87,7 @@ function fail(errors) {
 }
 
 const errors = [];
+const validWorkstreamStatuses = new Set(["draft", "ready", "active", "blocked", "done", "archived"]);
 
 if (!exists("docs/prd/README.md")) {
   errors.push("docs/prd/README.md is required as the current total PRD.");
@@ -191,6 +192,25 @@ for (const { file, markdown } of workstreams.values()) {
   const prdRequest = field(markdown, "prd_request");
   const allowedPaths = sectionList(markdown, "Allowed Paths");
   const verification = sectionList(markdown, "Verification");
+  const pathStatus = file.split("/").at(-2);
+
+  if (!validWorkstreamStatuses.has(status)) {
+    errors.push(`${file} has invalid status=${status}.`);
+  }
+
+  if (!validWorkstreamStatuses.has(pathStatus)) {
+    errors.push(`${file} must live under docs/workstreams/<status>/, not the top-level workstreams directory.`);
+  } else if (status !== pathStatus) {
+    errors.push(`${file} has status=${status}, but lives under ${pathStatus}/.`);
+  }
+
+  if (status === "done" && !prdRequest) {
+    errors.push(`${file} is done and should keep the related prd_request for traceability.`);
+  }
+
+  if (status === "archived" && !field(markdown, "archive_reason")) {
+    errors.push(`${file} is archived and must declare archive_reason.`);
+  }
 
   if (status === "active") {
     if (!prdRequest || !exists(prdRequest)) {

@@ -37,7 +37,7 @@
 - `docs/architecture.md`
 - `docs/technical-plan.md`
 - `docs/adr/*.md`
-- `docs/workstreams/*.md`
+- `docs/workstreams/{draft,ready,active,blocked,done,archived}/*.md`
 - `TODO.md`
 - `scripts/check-stage-gate.mjs`
 
