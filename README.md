@@ -121,8 +121,29 @@ node scripts/migrate-white-tower.mjs --write
 
 The migration script creates workstream state directories, moves flat workstream
 files into the directory matching their `status`, updates Markdown path
-references, and warns when a legacy PRD/workstream layout cannot be converted
-into full requirement packages automatically.
+references, and warns when a legacy PRD/workstream layout has not been converted
+into requirement packages yet.
+
+Generate compatibility requirement packages when an older project should move to
+`docs/requirements/<status>/<id_slug>/`:
+
+```bash
+node scripts/migrate-white-tower.mjs --create-requirements
+node scripts/migrate-white-tower.mjs --create-requirements --write
+```
+
+This mode creates packages such as:
+
+```text
+docs/requirements/in-progress/001_library_bootstrap/
+docs/requirements/planned/002_app_shell_theme/
+docs/requirements/completed/000_uiux_interaction_motion/
+```
+
+Generated packages keep `human_review_required: true` and reference legacy PRD,
+UI, technical-plan, and workstream files. They are compatibility skeletons, not a
+claim that the old documents have been fully rewritten into precise requirement
+packages.
 
 ## Workflow
 

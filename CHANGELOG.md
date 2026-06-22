@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added optional legacy workstream-to-requirement-package generation with `--create-requirements`.
 - Added a legacy migration script for old workstream layouts.
 - Added legacy compatibility rules for upgraded skills.
 - Added workstream lifecycle directories and rules to prevent completed workstreams from staying in the active queue.
