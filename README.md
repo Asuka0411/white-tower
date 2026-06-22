@@ -7,7 +7,7 @@
 ## Features
 
 - **阶段门禁**：按产品需求、界面设计、技术方案、架构、实现、发布交接推进。
-- **仓库内状态源**：用 `docs/project-status.md`、`docs/stage-gates.md`、`TODO.md` 记录当前阶段和允许动作。
+- **仓库内状态源**：用 `docs/white-tower/status.md`、`docs/white-tower/stage-gates.md`、`TODO.md` 记录当前阶段和允许动作。
 - **可执行检查**：提供 `check-stage-gate.mjs` 模板，用确定性脚本拦截越级源码改动。
 - **工作流隔离**：用 `docs/workstreams/` 管理并行需求，每个需求声明允许路径、阻塞路径和验收方式。
 - **AI 友好交接**：让下一次对话、下一位开发者或下一个 agent 只看仓库文件就能恢复上下文。
@@ -22,9 +22,9 @@
 ├── templates/
 │   ├── TODO.md                      # 项目 TODO 模板
 │   ├── docs/product/                # 总 PRD / UI / TECH 模板
-│   ├── docs/project-status.md       # 当前阶段状态模板
+│   ├── docs/white-tower/status.md   # 当前阶段状态模板
 │   ├── docs/requirements/template/  # 单需求包模板
-│   ├── docs/stage-gates.md          # 阶段门禁定义模板
+│   ├── docs/white-tower/stage-gates.md # 阶段门禁定义模板
 │   ├── docs/workstreams/            # 工作流模板
 │   ├── scripts/check-stage-gate.mjs # 阶段门禁检查脚本模板
 │   └── scripts/check-requirement-package.mjs # 需求包检查脚本模板
@@ -57,10 +57,10 @@ Use $white-tower 检查当前项目阶段，给出下一步 TODO 和门禁状态
 Inside the target project:
 
 ```bash
-mkdir -p docs/workstreams scripts
+mkdir -p docs/white-tower docs/workstreams scripts
 cp /path/to/white-tower/templates/TODO.md TODO.md
-cp /path/to/white-tower/templates/docs/project-status.md docs/project-status.md
-cp /path/to/white-tower/templates/docs/stage-gates.md docs/stage-gates.md
+cp /path/to/white-tower/templates/docs/white-tower/status.md docs/white-tower/status.md
+cp /path/to/white-tower/templates/docs/white-tower/stage-gates.md docs/white-tower/stage-gates.md
 cp -R /path/to/white-tower/templates/docs/workstreams docs/
 cp /path/to/white-tower/templates/scripts/check-stage-gate.mjs scripts/check-stage-gate.mjs
 node scripts/check-stage-gate.mjs
@@ -155,7 +155,7 @@ EOF
 chmod +x .git/hooks/pre-commit
 ```
 
-The hook checks staged paths against `docs/project-status.md`. In `source-locked` mode it allows planning artifacts and blocks new application source roots such as `src/`, `app/`, `apps/`, `packages/`, and runtime package manifests.
+The hook checks staged paths against `docs/white-tower/status.md`. In `source-locked` mode it allows planning artifacts and blocks new application source roots such as `src/`, `app/`, `apps/`, `packages/`, and runtime package manifests.
 
 ## When to Use
 

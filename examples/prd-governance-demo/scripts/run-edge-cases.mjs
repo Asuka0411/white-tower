@@ -109,7 +109,7 @@ const cases = [
     expectPass: false,
     mutate(root) {
       mutate(
-        "docs/project-status.md",
+        "docs/white-tower/status.md",
         (text) => `${text}\n- docs/prd/requests/2026/Q4/in-progress/missing.md\n`,
         root,
       );

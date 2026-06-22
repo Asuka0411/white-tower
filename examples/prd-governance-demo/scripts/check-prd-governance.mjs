@@ -212,12 +212,16 @@ for (const { file, markdown } of workstreams.values()) {
   }
 }
 
-if (exists("docs/project-status.md")) {
-  const status = read("docs/project-status.md");
+const projectStatusPath = exists("docs/white-tower/status.md")
+  ? "docs/white-tower/status.md"
+  : "docs/project-status.md";
+
+if (exists(projectStatusPath)) {
+  const status = read(projectStatusPath);
   const focusPaths = fieldList(status, "current_focus");
   for (const focusPath of focusPaths) {
     if (!exists(focusPath)) {
-      errors.push(`docs/project-status.md current_focus points to missing ${focusPath}.`);
+      errors.push(`${projectStatusPath} current_focus points to missing ${focusPath}.`);
     }
   }
 }

@@ -17,7 +17,7 @@ node examples/prd-governance-demo/scripts/run-edge-cases.mjs
 - `archived` 需求被总 PRD 引用应失败。
 - `planned` 需求提前绑定 workstream 应失败。
 - active workstream 指向 planned request 应失败。
-- `docs/project-status.md` 的 `current_focus` 指向不存在文件应失败。
+- `docs/white-tower/status.md` 的 `current_focus` 指向不存在文件应失败。
 - 需求声明的 `status` 和所在状态目录不一致应失败。
 - `in-progress` 需求缺少验收标准应失败。
 - in-progress 需求绑定的 workstream 不是 active 应失败。

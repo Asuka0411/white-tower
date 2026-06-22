@@ -49,14 +49,20 @@ function fail(messages) {
   process.exit(1);
 }
 
-const statusPath = "docs/project-status.md";
+const preferredStatusPath = "docs/white-tower/status.md";
+const legacyStatusPath = "docs/project-status.md";
+const statusPath = existsSync(preferredStatusPath)
+  ? preferredStatusPath
+  : existsSync(legacyStatusPath)
+    ? legacyStatusPath
+    : preferredStatusPath;
 const status = read(statusPath);
 
 if (!status) {
   const changed = gitChangedPaths();
   const allowedBootstrap = new Set([
-    "docs/project-status.md",
-    "docs/stage-gates.md",
+    "docs/white-tower/status.md",
+    "docs/white-tower/stage-gates.md",
     "TODO.md",
     "docs/workstreams/README.md",
     "docs/workstreams/template.md",
