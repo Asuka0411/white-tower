@@ -15,6 +15,7 @@ const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith("--
 const root = positionalArgs[0] ? path.resolve(positionalArgs[0]) : process.cwd();
 const write = process.argv.includes("--write");
 const createRequirements = process.argv.includes("--create-requirements");
+const requirementsPeriodArg = optionValue("requirements-period");
 
 const workstreamStates = new Set(["draft", "ready", "active", "blocked", "done", "archived"]);
 const statusAliases = new Map([
@@ -26,7 +27,10 @@ const statusAliases = new Map([
 const operations = [];
 const warnings = [];
 const replacements = new Map();
+const scheduledRequirementTargets = new Set();
+const requirementsPeriod = normalizedRequirementsPeriod(requirementsPeriodArg);
 
+const requirementStatuses = new Set(["planned", "in-progress", "completed", "archived"]);
 const requirementStatusByWorkstreamStatus = new Map([
   ["draft", "planned"],
   ["ready", "planned"],
@@ -38,6 +42,34 @@ const requirementStatusByWorkstreamStatus = new Map([
 
 function relative(...segments) {
   return path.join(root, ...segments);
+}
+
+function optionValue(name) {
+  const prefix = `--${name}=`;
+  const match = process.argv.find((arg) => arg.startsWith(prefix));
+  return match ? match.slice(prefix.length) : "";
+}
+
+function defaultRequirementsPeriod(date = new Date()) {
+  const year = date.getFullYear();
+  const quarter = Math.floor(date.getMonth() / 3) + 1;
+  return `${year}/Q${quarter}`;
+}
+
+function normalizedRequirementsPeriod(value) {
+  if (!value) {
+    return defaultRequirementsPeriod();
+  }
+
+  const match = value.match(/^(\d{4})\/q([1-4])$/i);
+  if (!match) {
+    warnings.push(
+      `invalid --requirements-period=${value}; use YYYY/QX, e.g. 2026/Q3. Falling back to ${defaultRequirementsPeriod()}.`,
+    );
+    return defaultRequirementsPeriod();
+  }
+
+  return `${match[1]}/Q${match[2]}`;
 }
 
 function toPosix(filePath) {
@@ -128,6 +160,45 @@ function listWorkstreamFiles() {
       return !["README.md", "template.md"].includes(name);
     })
     .sort();
+}
+
+function migrateUnperiodedRequirementPackages() {
+  const requirementsDir = relative("docs", "requirements");
+  if (!existsSync(requirementsDir)) {
+    return;
+  }
+
+  for (const status of requirementStatuses) {
+    const statusDir = relative("docs", "requirements", status);
+    if (!existsSync(statusDir) || !statSync(statusDir).isDirectory()) {
+      continue;
+    }
+
+    for (const entry of readdirSync(statusDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      const source = `docs/requirements/${status}/${entry.name}`;
+      if (!exists(source, "00-meta.md")) {
+        continue;
+      }
+
+      const target = `docs/requirements/${requirementsPeriod}/${status}/${entry.name}`;
+      if (exists(target)) {
+        warnings.push(`${target} already exists; cannot auto-move ${source}.`);
+        continue;
+      }
+
+      operations.push(`move ${source}/ -> ${target}/`);
+      replacements.set(source, target);
+      scheduledRequirementTargets.add(target);
+      if (write) {
+        mkdirSync(path.dirname(relative(target)), { recursive: true });
+        renameSync(relative(source), relative(target));
+      }
+    }
+  }
 }
 
 function ensureWorkstreamStateDirs() {
@@ -546,8 +617,8 @@ function createLegacyRequirementPackages() {
     }
 
     const requirementStatus = requirementStatusByWorkstreamStatus.get(workstreamStatus) || "planned";
-    const targetDir = `docs/requirements/${requirementStatus}/${descriptor.name}`;
-    if (exists(targetDir)) {
+    const targetDir = `docs/requirements/${requirementsPeriod}/${requirementStatus}/${descriptor.name}`;
+    if (exists(targetDir) || scheduledRequirementTargets.has(targetDir)) {
       warnings.push(`${targetDir} already exists; skip generated requirement package for ${source}.`);
       continue;
     }
@@ -685,6 +756,7 @@ function detectLegacyRequirementLayout() {
 
 ensureWorkstreamStateDirs();
 migrateFlatWorkstreams();
+migrateUnperiodedRequirementPackages();
 updateMarkdownReferences();
 createLegacyRequirementPackages();
 detectLegacyRequirementLayout();
@@ -712,6 +784,8 @@ if (!operations.length && !warnings.length) {
 if (!write) {
   console.log("\nRun with --write to apply safe migrations.");
   if (!createRequirements) {
-    console.log("Run with --create-requirements to also generate docs/requirements compatibility packages.");
+    console.log("Run with --create-requirements to also generate docs/requirements/YYYY/QX compatibility packages.");
+  } else {
+    console.log(`Using requirement period: ${requirementsPeriod}. Override with --requirements-period=YYYY/QX.`);
   }
 }

@@ -1,8 +1,8 @@
 ---
 name: white-tower
-version: 0.7.0-dev
+version: 0.8.0-dev
 codename: white-tower
-updated_at: 2026-06-22
+updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, stage gates, repository guardrails, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, requirement packages, Gitflow branch checks, pre-commit, pre-push, CI, or check scripts.
 ---
 
@@ -28,9 +28,9 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.7.0-dev
+version: 0.8.0-dev
 codename: white-tower
-updated_at: 2026-06-22
+updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
 ```
 
@@ -61,7 +61,7 @@ Use $white-tower dispatch max_parallel=2
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 阶段门禁 / 风险”输出。
 - “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
-- “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果用户要求 `docs/requirements/<id>` 需求包结构，使用 `--create-requirements` 生成兼容需求包。
+- “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果用户要求 `docs/requirements/YYYY/QX/<status>/<id>` 需求包结构，使用 `--create-requirements` 生成兼容需求包，可用 `--requirements-period=2026/Q3` 指定季度。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
 - “开始开发 / 初始化项目 / 写功能”：先运行门禁检查；如果仍处于 `source-locked`，不要创建源码目录或工程文件。
 - “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和需求包任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
@@ -119,24 +119,32 @@ cp /path/to/white-tower/templates/scripts/migrate-white-tower.mjs scripts/migrat
 node scripts/migrate-white-tower.mjs
 ```
 
-如果用户明确要求迁移到 `docs/requirements/<id>` 需求包结构，先 dry-run：
+如果用户明确要求迁移到 `docs/requirements/YYYY/QX/<status>/<id>` 需求包结构，先 dry-run：
 
 ```bash
 node scripts/migrate-white-tower.mjs --create-requirements
 ```
 
+默认按当前日期推导 `YYYY/QX`；跨季度规划时显式指定：
+
+```bash
+node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3
+```
+
 确认输出只包含安全迁移后再应用：
 
 ```bash
-node scripts/migrate-white-tower.mjs --create-requirements --write
+node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3 --write
 ```
+
+如果旧迁移已经生成了无季度目录，例如 `docs/requirements/planned/002_app_shell_theme/`，新版脚本必须把它们迁到选定季度，例如 `docs/requirements/2026/Q3/planned/002_app_shell_theme/`，并更新 Markdown 引用。
 
 该模式会从旧 workstream 生成兼容需求包，例如：
 
 ```text
-docs/requirements/in-progress/001_library_bootstrap/
-docs/requirements/planned/002_app_shell_theme/
-docs/requirements/completed/000_uiux_interaction_motion/
+docs/requirements/2026/Q3/in-progress/001_library_bootstrap/
+docs/requirements/2026/Q3/planned/002_app_shell_theme/
+docs/requirements/2026/Q3/completed/000_uiux_interaction_motion/
 ```
 
 生成的需求包必须标记 `human_review_required: true`，并把旧 PRD、UI、技术方案和 workstream 当作来源引用。不要声称它们已经完成精细需求重写；只能说这是兼容迁移后的需求包骨架。
@@ -147,7 +155,7 @@ docs/requirements/completed/000_uiux_interaction_motion/
 - 将顶层 flat workstream 按 `status` 移到对应目录。
 - 将旧状态别名映射为新版目录：`planned -> draft`、`in-progress -> active`、`completed -> done`。
 - 自动更新 Markdown 中的旧 workstream 路径引用。
-- 显式传入 `--create-requirements` 时，从旧 workstream 生成 `docs/requirements/<status>/<id_slug>/` 兼容需求包。
+- 显式传入 `--create-requirements` 时，从旧 workstream 生成 `docs/requirements/YYYY/QX/<status>/<id_slug>/` 兼容需求包；`YYYY/QX` 默认按当前日期推导，也可用 `--requirements-period=YYYY/QX` 指定。
 
 不能安全自动生成的信息只进入兼容模式或输出 warning：
 

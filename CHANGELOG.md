@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added migration repair for unperioded generated requirement packages from older `--create-requirements` runs.
+- Changed generated legacy requirement packages to use `docs/requirements/YYYY/QX/<status>/<id_slug>/` with `--requirements-period` override.
 - Added optional legacy workstream-to-requirement-package generation with `--create-requirements`.
 - Added a legacy migration script for old workstream layouts.
 - Added legacy compatibility rules for upgraded skills.

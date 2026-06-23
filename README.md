@@ -125,19 +125,25 @@ references, and warns when a legacy PRD/workstream layout has not been converted
 into requirement packages yet.
 
 Generate compatibility requirement packages when an older project should move to
-`docs/requirements/<status>/<id_slug>/`:
+`docs/requirements/YYYY/QX/<status>/<id_slug>/`:
 
 ```bash
 node scripts/migrate-white-tower.mjs --create-requirements
-node scripts/migrate-white-tower.mjs --create-requirements --write
+node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3
+node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3 --write
 ```
+
+When `--requirements-period` is omitted, the script derives the period from the
+current date. If an older migration already created unperioded packages such as
+`docs/requirements/planned/002_app_shell_theme/`, the script moves them into the
+selected `YYYY/QX` period.
 
 This mode creates packages such as:
 
 ```text
-docs/requirements/in-progress/001_library_bootstrap/
-docs/requirements/planned/002_app_shell_theme/
-docs/requirements/completed/000_uiux_interaction_motion/
+docs/requirements/2026/Q3/in-progress/001_library_bootstrap/
+docs/requirements/2026/Q3/planned/002_app_shell_theme/
+docs/requirements/2026/Q3/completed/000_uiux_interaction_motion/
 ```
 
 Generated packages keep `human_review_required: true` and reference legacy PRD,
