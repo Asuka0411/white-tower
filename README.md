@@ -267,6 +267,10 @@ user-facing report. Recovery must use durable repo state:
 git status / branch / commit state
 ```
 
+Run records and checkpoints should render clearly in Markdown preview. Put
+metadata in a fenced `yaml` block or a Markdown table/list, not as consecutive
+plain `key: value` lines that preview as one paragraph.
+
 On token limits, IDE crashes, power loss, worker failure, or stale locks, the
 next run must first reconstruct state from the latest checkpoint and git diff,
 then either continue, verify current WIP, mark blocked, or ask for human input.

@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.10-dev
+version: 0.12.11-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.10-dev
+version: 0.12.11-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -331,6 +331,30 @@ UI/UX-first 项目的连续推进规则：
 - 下一步动作。
 - verification 是否在最新 diff 后运行。
 - blocker、risk、manual question。
+
+`07_runs/*.md`、`07_runs/latest.md` 和 `08_checkpoints/*.md` 的顶部元信息必须用 Markdown 预览友好的结构，不得把裸 `key: value` 连续写成普通段落。推荐格式：
+
+````markdown
+# UI/UX Checkpoint
+
+## Metadata
+
+```yaml
+checkpoint_id: 2026-06-23T163711+0800-after-verify
+run_id: 2026-06-23T163111+0800-generate-uir-001
+phase: uiux-draft-generation
+task: UIR-001
+branch: main
+head_commit: c56c452
+verification_after_latest_diff: true
+```
+````
+
+如果不用 fenced `yaml`，也必须使用 Markdown 列表或表格。不要使用这种会在预览中挤成一行的格式：
+
+```text
+checkpoint_id: ... run_id: ... phase: ... task: ...
+```
 
 `00-meta.md` 或等价状态文件必须能记录执行锁：
 
