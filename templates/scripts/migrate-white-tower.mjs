@@ -294,6 +294,7 @@ function migrateRequirementPackages() {
   for (const source of listInitiativePackageDirs()) {
     const packageName = path.basename(source);
     const meta = read(`${source}/00-meta.md`);
+    let nextMeta = meta;
     const rawStatus = field(meta, "status");
     const rawLifecycleState = field(meta, "lifecycle_state");
     const pathStatus = source.split("/").at(-2) || "";
@@ -327,19 +328,18 @@ function migrateRequirementPackages() {
 
     if (rawStatus !== targetStatus) {
       operations.push(`update status in ${finalDir}/00-meta.md to ${targetStatus}`);
+      nextMeta = replaceField(nextMeta, "status", targetStatus);
       if (write) {
-        const metaPath = `${finalDir}/00-meta.md`;
-        writeFile(metaPath, replaceField(read(metaPath), "status", targetStatus));
+        writeFile(`${finalDir}/00-meta.md`, nextMeta);
       }
     }
 
-    const idMetaPath = `${finalDir}/00-meta.md`;
-    const idMeta = read(idMetaPath);
-    const nextIdMeta = normalizeInitiativeIdField(idMeta);
-    if (idMeta !== nextIdMeta) {
+    const nextIdMeta = normalizeInitiativeIdField(nextMeta);
+    if (nextMeta !== nextIdMeta) {
       operations.push(`rename requirement_id to initiative_id in ${finalDir}/00-meta.md`);
+      nextMeta = nextIdMeta;
       if (write) {
-        writeFile(idMetaPath, nextIdMeta);
+        writeFile(`${finalDir}/00-meta.md`, nextMeta);
       }
     }
 
@@ -352,18 +352,17 @@ function migrateRequirementPackages() {
       );
       targetLifecycleState = targetStatus;
     }
-    const lifecycleMetaPath = `${finalDir}/00-meta.md`;
-    const lifecycleMeta = read(lifecycleMetaPath);
     const nextLifecycleMeta = setFieldAfter(
-      lifecycleMeta,
+      nextMeta,
       "lifecycle_state",
       targetLifecycleState,
       "status",
     );
-    if (lifecycleMeta !== nextLifecycleMeta) {
+    if (nextMeta !== nextLifecycleMeta) {
       operations.push(`update lifecycle_state in ${finalDir}/00-meta.md to ${targetLifecycleState}`);
+      nextMeta = nextLifecycleMeta;
       if (write) {
-        writeFile(lifecycleMetaPath, nextLifecycleMeta);
+        writeFile(`${finalDir}/00-meta.md`, nextMeta);
       }
     }
   }
