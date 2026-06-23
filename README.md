@@ -105,6 +105,14 @@ for explicit user confirmation. UI/UX drafts can be generated in parallel, but
 initiative state must not advance past the UI/UX gate until each relevant image
 is approved.
 
+`continue`, `dispatch`, and end-to-end planning commands should run as an
+autopilot loop. After one preparatory action completes, White Tower should
+re-read project state and immediately continue the next allowed action. It
+should not stop after creating review queues, TODO updates, checkpoints, indexes,
+or status files. Stop only for explicit user approval gates, unresolved product
+or design choices, destructive/high-impact decisions, failed checks that cannot
+be repaired in the current scope, or tool/environment limits.
+
 For OMP:
 
 ```bash
