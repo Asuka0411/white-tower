@@ -114,6 +114,12 @@ requires it. If critique says the UI is cluttered, repetitive, role-confused, or
 visually unchanged, the next revision must make a structural change, regenerate
 the screenshot, record the changed regions, and keep the item in `pending_review`.
 
+When `ui-ux-pro-max` is installed, White Tower uses it first for UI/UX design
+research: generate a design-system recommendation, then search style, UX, color,
+typography, and stack guidance. These results are recorded as inputs, not blindly
+accepted; project PRD, confirmed style, page job, and user feedback override any
+misfit recommendation.
+
 `continue`, `dispatch`, and end-to-end planning commands should run as an
 autopilot loop. After one preparatory action completes, White Tower should
 re-read project state and immediately continue the next allowed action. It

@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.12-dev
+version: 0.12.13-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.12-dev
+version: 0.12.13-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -206,6 +206,39 @@ uiux_quality_check:
 如果任一项不是 `true`，白塔先继续修改，不把图片发给用户 review。修订后不能声称“已解决”直到重新生成图片并完成自检。
 
 向用户发送 UI/UX 图片时，回复只需要给图片、页面名和一句确认问题。不要用长篇文字解释设计为什么好；设计质量由图片本身接受 review。状态保持 `pending_review`，直到用户明确确认。
+
+### UI/UX Pro Max 优先策略
+
+如果本机可用 `ui-ux-pro-max` skill，白塔做 UI/UX 设计、重绘、review、修复或生成页面图时，默认优先使用它作为设计检索和质量输入。不要在没有检索的情况下直接凭感觉画界面。
+
+使用顺序：
+
+1. 先读取当前项目 PRD、产品级 UI/UX 风格、页面目标和已确认用户偏好。
+2. 运行 `ui-ux-pro-max` 的 design-system 检索，获得产品类型、风格、颜色、字体、动效和反模式建议。
+3. 继续按需要检索 `style`、`ux`、`color`、`typography` 和项目技术栈，例如 `flutter`、`swiftui`、`react` 或 `html-tailwind`。
+4. 把检索结果写入设计 run record：`ui_ux_pro_max_queries`、`accepted_recommendations`、`rejected_recommendations`、`rejection_reason`。
+5. 再进入本 skill 的 UI/UX 绘制质量闸，完成 design brief、自检、截图和 `pending_review`。
+
+`ui-ux-pro-max` 是优先输入，不是最终裁判。它的自动推荐如果偏离项目语境，例如把工具型产品推荐成 landing page、video hero、营销页、过度仪表盘或错误行业风格，白塔必须拒绝该推荐并记录原因。最终设计必须服从：
+
+- 已确认 PRD 和页面任务。
+- 产品级 UI/UX 风格。
+- 用户明确偏好和否定反馈。
+- 当前页面的单一 `page_job` 和 `primary_action`。
+- 可访问性、对齐、信息层级和可截图 review 质量。
+
+推荐命令模板：
+
+```bash
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<product type> <industry> <style keywords>" --design-system -p "<Project Name>" -f markdown
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<style query>" --domain style -n 6
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<ux query>" --domain ux -n 10
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<color query>" --domain color -n 5
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<typography query>" --domain typography -n 5
+python3 ~/.codex/skills/ui-ux-pro-max/scripts/search.py "<stack query>" --stack <stack> -n 5
+```
+
+如果 `ui-ux-pro-max` 未安装、脚本不可执行或 Python 环境不可用，白塔先报告缺失并继续使用本 skill 的质量闸完成设计；不要因为缺少该辅助 skill 就停止整个 UI/UX 流程。
 
 ### 新项目 Bootstrap
 
