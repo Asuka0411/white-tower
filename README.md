@@ -99,6 +99,12 @@ album page, import page, and final integration. Pages or modules that only wait
 for the same foundation layer should run in parallel when their `allowed_paths`
 do not overlap.
 
+If `docs/uiux/REVIEW_STATUS.md` contains `pending_review` items, dispatch should
+pause implementation, render the referenced images in the conversation, and wait
+for explicit user confirmation. UI/UX drafts can be generated in parallel, but
+initiative state must not advance past the UI/UX gate until each relevant image
+is approved.
+
 For OMP:
 
 ```bash

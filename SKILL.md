@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.8-dev
+version: 0.12.9-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.8-dev
+version: 0.12.9-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -111,20 +111,46 @@ Use $white-tower 审查并推进需求单
 
 - PRD / 需求范围 / 优先级 / 非目标。
 - 产品级 UI/UX 风格、设计原则、视觉基调和交互偏好。
-- 白塔完成某个需求级 UI/UX 设计后的 review 结论。
+- 白塔完成某个需求级 UI/UX 设计后的 review 结论；必须在对话中发送可预览图片给用户确认。
 - 真正影响产品方向、全局设计风格、重大架构、破坏性数据迁移、外部服务、付费能力或删除用户已有改动的决策。
 
 白塔默认自主完成：
 
 - 根据已确认 PRD 生成或更新 initiative。
 - 根据产品级 UI/UX 风格自动设计每个 initiative 的需求级 UI/UX，并写入 `02-界面设计.md`、截图、引用和设计资产。
-- 需求级 UI/UX 完成后向用户给 review 摘要；如果只是局部页面设计，不先问用户才开始设计。
+- 需求级 UI/UX 完成后向用户给 review 摘要，并在对话中直接发送图片；如果只是局部页面设计，不先问用户才开始设计。
+- UI/UX 草案生成可以并发，但状态推进不能并发越过用户确认。每个 UI/UX review item 在用户明确确认前必须保持 `pending_review`。
 - 生成和推进 `03-技术方案.md`，保持 UI 与数据分离、MVVM / ViewModel 等分层约束。
 - 生成和维护细粒度 `04-任务拆解.md`、allowed paths、blocked paths、verification、依赖、目标分支和 task DAG；默认按工程壳、UI token、领域模型、页面、状态集成、验收等层级拆分，而不是把一个需求压成一个大任务。
 - 在条件满足后移动 initiative 状态、写 checkpoint / run record、派发多 agent 或顺序 fallback 实施。
 - 运行验证、更新验收记录、反写 `docs/product/PRD.md`、`docs/product/UI.md`、`docs/product/TECH.md` 和 release handoff。
 
 不要把阶段状态、文件移动、`plan_status`、`lifecycle_state`、任务切片或 dispatch 选择交给用户手动操作。只有上面列出的人工决策项才需要停下来问。
+
+### UI/UX 确认门禁
+
+如果项目声明现有 UI/UX 为 reference only，白塔必须把旧 UI/UX 文档、草图和图片只当参考资产，不得作为已批准交付物推动状态变化。
+
+项目应使用 `docs/uiux/REVIEW_STATUS.md` 或 initiative 内等价 run record 保存 UI/UX 审核状态：
+
+```yaml
+uiux_mode: redesign_required
+current_assets_status: reference_only
+approval_policy: explicit_user_confirmation_required
+pending_review:
+  - id: <initiative-or-page-id>
+    image: <path-to-png>
+    source: <path-to-html-or-figma>
+    status: pending_review
+```
+
+规则：
+
+- 白塔可以并发生成多个 UI/UX 草案、页面图、主题探索或状态图。
+- 每个草案完成后，必须把 PNG/JPG/WebP 等可预览图片保存到仓库，并在对话中用图片直接发给用户确认。
+- 用户明确确认前，不得把对应 initiative 从 `planned` 推到 `active`，不得把 `lifecycle_state` 推进为 `ready` / `active`，不得继续依赖该 UI/UX 的技术方案批准或源码 dispatch。
+- 如果对话中断、用户未确认、token 限流、IDE 崩溃或电脑断电，下次 `继续`、`实施计划` 或 `dispatch` 必须先读取 UI/UX review 状态；只要存在 `pending_review`，就重新发送对应图片并等待确认。
+- 用户提出修改意见时，白塔更新草案和图片，保持 `pending_review`；只有用户明确说确认、通过、按这个方向继续等同义表达时，才标记 `approved` 并继续推进。
 
 ### 新项目 Bootstrap
 
@@ -252,8 +278,8 @@ docs/initiatives/done/000_uiux_interaction_motion/
 
 自动状态推进规则：
 
-- 如果 PRD 和产品级 UI/UX 已确认，但 initiative 缺少 `02-界面设计.md` 或设计资产，白塔先自动生成需求级 UI/UX 草稿和预览图，再进入技术方案推进。
-- 需求级 UI/UX 草稿完成后，白塔可以进入 review 摘要；用户未明确反对且没有全局风格冲突时，后续技术方案和任务切片可继续推进。
+- 如果 PRD 和产品级 UI/UX 已确认，但 initiative 缺少 `02-界面设计.md` 或设计资产，白塔先自动生成需求级 UI/UX 草稿和预览图，并把 review item 记录为 `pending_review`。
+- 需求级 UI/UX 草稿完成后，白塔必须在对话中发送可预览图片给用户确认。用户明确确认前，只能继续准备不依赖 UI/UX 批准的草案资料，不得批准技术方案、推进 initiative 生命周期或执行源码 dispatch。
 - `plan_status=draft` 且必填章节完整、无明显占位、能约束实现、未解决问题不阻塞评审时，白塔可改为 `plan_status=review`。
 - `plan_status=review` 只有在用户或明确的评审记录批准后才能改为 `approved`。
 - 外部目录只使用 `planned/active/done/archived/`。准备、评审、暂停、阻塞等细状态写入 `lifecycle_state`，不要新建细状态目录。
@@ -354,6 +380,7 @@ execution_lock:
 2. **白塔自检**：
    - 如果存在 `scripts/check-stage-gate.mjs`，白塔先运行它作为自检。
    - 如果存在 `scripts/check-initiative-package.mjs`，先运行。
+   - 如果存在 `docs/uiux/REVIEW_STATUS.md` 或 initiative run record 中有 `pending_review` UI/UX，先在对话中重发图片并等待用户确认，不要继续源码 dispatch。
    - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，白塔才执行编码任务。
    - 如果当前不允许源码实现，但存在 planned / active initiatives，自动转入 Initiative 自动审查推进流程。
    - 如果当前不允许源码实现且没有 initiative，自动补齐当前阶段缺失文档和 TODO。
