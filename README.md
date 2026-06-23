@@ -91,6 +91,17 @@ For OMP:
 omp --cwd /path/to/project --skills=white-tower "Use $white-tower dispatch max_parallel=2"
 ```
 
+If the project is not ready for coding yet, White Tower should not stop at
+`dispatch cannot run`. It should automatically run the next preparatory step,
+usually:
+
+```text
+Use $white-tower 审查并推进需求单
+```
+
+Users should not need to understand or manually edit `current_stage`,
+`gate_mode`, `status`, or `lifecycle_state`.
+
 ### Review and advance initiatives
 
 Do not manually open every initiative just to update checklist or plan status.

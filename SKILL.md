@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.4-dev
+version: 0.12.5-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.4-dev
+version: 0.12.5-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -56,6 +56,12 @@ Use $white-tower dispatch max_parallel=2
 
 这条指令必须自动完成环境判断、任务选择和执行器选择。如果白塔自检通过且存在 runnable tasks，不要只输出方案，要开始派发任务。
 
+如果当前项目还处在 `bootstrap`、`source-locked`、`0-迁移收口`、`1-产品需求`、`2-界面设计` 或 `3-准备开发`，`dispatch` 不能直接编码。此时不要只告诉用户“不能执行”，也不要要求用户理解阶段名、手动改状态或自己选择下一条命令。白塔必须自动切换到当前可执行的前置流程：
+
+- 已有 `docs/initiatives/planned/` 或 `docs/initiatives/active/`：自动执行“审查并推进需求单”。
+- 还没有 initiative：自动补齐当前阶段缺失的 PRD、UI、`docs/product/TECH.md`、ADR、TODO 或状态文件。
+- 输出给用户时只说清楚：“现在不能直接编码，我会先推进 <具体前置动作>；你不用手动改状态。”
+
 批量审查并推进需求单时使用：
 
 ```text
@@ -73,7 +79,7 @@ Use $white-tower 审查并推进需求单
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
 - “审查并推进需求单 / 推进需求单 / 批量推进技术方案”：执行 initiative 自动审查推进流程；不要要求用户逐个打开 `03-技术方案.md` 手动从 `draft` 改到 `review`。
 - “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
-- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
+- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。如果当前阶段还不允许编码，自动转入“审查并推进需求单”或当前阶段补齐流程，不要把操作选择交给用户。
 - “提交代码”：白塔自己先运行可用自检、仓库既有检查和 `git diff --check`；不要默认要求项目安装 pre-commit、pre-push 或 CI 阻止其他人。
 - “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/white-tower/status.md`、`TODO.md` 和必要 architecture-decision。
 
@@ -323,6 +329,9 @@ execution_lock:
    - 如果存在 `scripts/check-stage-gate.mjs`，白塔先运行它作为自检。
    - 如果存在 `scripts/check-initiative-package.mjs`，先运行。
    - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，白塔才执行编码任务。
+   - 如果当前不允许源码实现，但存在 planned / active initiatives，自动转入 Initiative 自动审查推进流程。
+   - 如果当前不允许源码实现且没有 initiative，自动补齐当前阶段缺失文档和 TODO。
+   - 面向用户的回复必须给“白塔将自动执行的下一步”，不要只输出 blocked_actions、内部状态或让用户手动切换阶段。
 3. **选择 runnable tasks**：
    - `status=planned`。
    - `depends_on` 全部完成或为 `none`。
@@ -341,6 +350,14 @@ execution_lock:
    - worker 完成后必须运行该任务的 `verification`。
    - 每个任务完成后先做 spec review，再做 quality review。
    - 最后由主控整合结果，更新 `04-任务拆解.md`、`05-验收记录.md` 和必要全局文档。
+
+用户引导规则：
+
+- 不要让用户判断 `bootstrap`、`source-locked`、`development` 的含义。
+- 不要让用户手动编辑 `current_stage`、`gate_mode`、`status` 或 `lifecycle_state`。
+- 不要把多条候选命令丢给用户选择。
+- 如果不能编码，直接说明白塔会先做哪个前置动作，例如“我先自动审查 planned 需求单，把可进入 review 的技术方案推进，并找出首个可 active 的 initiative。”
+- 只有涉及产品范围、设计取舍、重大架构选择、破坏性删除或外部服务时，才向用户提问。
 
 派发 worker 时使用这种上下文结构：
 
