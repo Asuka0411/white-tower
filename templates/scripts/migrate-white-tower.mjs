@@ -501,45 +501,41 @@ ${fencedOrEmpty(acceptance)}
 function generatedDesignDoc({ source }) {
   return `# 02-界面设计
 
-## 页面清单
+## 关联页面
 
 - See \`docs/uiux/README.md\`.
 
-## 用户流程
+## 设计依据
 
-- See legacy UI/UX documents under \`docs/uiux/\`.
+- [UI/UX 入口](../../../uiux/README.md)
+- [组件规范与交互状态](../../../uiux/04-组件规范与交互状态.md)
+- [交互状态机](../../../uiux/05-交互状态机.md)
+- Generated from \`${source}\`; review against legacy UI/UX documents.
 
-## 页面跳转
+## 页面图
 
-- See legacy UI/UX documents under \`docs/uiux/\`.
+### 待补页面图
 
-## 低保真原型
+- 源文件: [legacy source](${source})
+- 图片: 待补。迁移脚本不能可靠推断具体截图，人工确认时必须补 PNG/JPG/WebP 并使用 \`![说明](相对路径)\` 嵌入。
 
-- none linked during automatic migration.
+## 状态
 
-## 高保真图
+- loading:
+- empty:
+- ready:
+- error:
+- disabled:
 
-- See \`sketches/\` if present.
+## 文案要求
 
-## 组件状态
-
-- See \`docs/uiux/04-组件规范与交互状态.md\`.
-
-## 加载 / 空 / 错误 / 禁用
-
-- See legacy UI/UX state documents if present.
-
-## 交互说明
-
-- Generated from \`${source}\`; review against \`docs/uiux/\`.
-
-## 动效说明
-
-- See legacy animation or motion documents if present.
+- 用户可见文案必须进入本地化资源。
+- 文案必须说明当前状态、可执行动作和风险边界。
 
 ## 项目风格对齐
 
 - Keep existing product UI direction. Do not introduce unrelated visual style changes during migration.
+- If only HTML/Figma/prototype links exist, export stable preview images before treating this design section as review-ready.
 
 ## 需要反写到总 UI 的内容
 

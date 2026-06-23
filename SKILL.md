@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.1-dev
+version: 0.12.2-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.1-dev
+version: 0.12.2-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -496,7 +496,7 @@ node scripts/check-stage-gate.mjs --staged
 推荐结构：
 
 ```text
-docs/initiatives/active/012_import_folder/
+docs/initiatives/active/012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -506,6 +506,22 @@ docs/initiatives/active/012_import_folder/
 ├── 05-验收记录.md
 └── 06-发布交接.md
 ```
+
+目录命名推荐：
+
+- initiative 目录是给人读的，推荐使用 `<三位数字>_<中文短标题>`，例如 `001_管理目录初始化与空图库壳`。
+- 目录 ID 必须和 `00-meta.md` 中的 `initiative_id` 一致。
+- 中文短标题保持清晰、稳定、可扫描；避免过长句子、标点堆叠和临时口语。
+- Git 分支仍使用英文 slug，例如 `feat_001_foundation_library_shell`。不要把中文目录名同步到分支名，避免 shell、CI、远端分支、多 agent 工具和脚本兼容问题。
+- `docs/initiatives/README.md`、`TODO.md` 和其他文档引用必须使用中文目录名的真实路径。
+
+`02-界面设计.md` 不能只写裸路径或只有“设计依据”。必须同时提供可点击引用和可预览图片：
+
+- 设计依据使用 Markdown 链接，例如 `[信息架构与页面清单](../../../uiux/02-信息架构与页面清单.md)`。
+- 样张必须同时列出源文件链接和图片链接；如果已有 PNG/JPG/WebP，必须用 `![说明](相对路径)` 直接嵌入。
+- 如果只有 HTML/Figma/外部原型，没有可预览图片，先导出或截图到仓库内稳定路径，再嵌入图片；不要让读者只能复制路径跳转。
+- 图片路径使用相对于当前 `02-界面设计.md` 的路径，并在提交前验证文件真实存在。
+- 页面图要覆盖关键页面、核心状态、异常态和危险态；不足的图要在文档中明确标记为待补，不要假装已覆盖。
 
 全局汇总文档只记录当前产品事实：
 
@@ -644,6 +660,7 @@ stage: 3-准备开发
 - 页面覆盖索引。
 - 组件和交互状态说明。
 - 必要时导出重点页面截图。
+- 每个 initiative 的 `02-界面设计.md` 都必须引用相关规范、HTML/Figma/原型源文件，并直接嵌入可预览 PNG/JPG/WebP 图片。
 
 白塔自检：
 

@@ -220,6 +220,18 @@ docs/initiatives/active/012_import_folder/
 └── 06-发布交接.md
 ```
 
+Recommended initiative folder naming:
+
+- Use human-readable Chinese folder names: `docs/initiatives/planned/001_管理目录初始化与空图库壳`.
+- Keep Git branches as ASCII slugs: `feat_001_foundation_library_shell`.
+- Update `docs/initiatives/README.md`, `TODO.md`, and cross-document links to point at the real Chinese folder path.
+
+Interface design files should be directly reviewable:
+
+- `02-界面设计.md` should include clickable source references.
+- It should embed preview images with Markdown image syntax, not only list paths.
+- If the source is HTML, Figma, or another prototype, export or capture a stable PNG/JPG/WebP into the repo and embed it.
+
 `00-meta.md` keeps `status` aligned with the folder and records finer workflow
 state separately:
 
