@@ -61,6 +61,64 @@ function readListSection(content, section) {
     .filter(Boolean);
 }
 
+function readListFields(content, name) {
+  const lines = content.split(/\r?\n/);
+  const values = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index].trim() !== `${name}:`) {
+      continue;
+    }
+
+    for (const line of lines.slice(index + 1)) {
+      if (!line.trim()) {
+        continue;
+      }
+      if (/^#{1,6}\s+/.test(line) || /^[A-Za-z0-9_-]+:/.test(line.trim())) {
+        break;
+      }
+      const match = line.match(/^\s*-\s+(.+)$/);
+      if (!match) {
+        break;
+      }
+      values.push(match[1].trim());
+    }
+  }
+
+  return [...new Set(values)];
+}
+
+function taskSections(content) {
+  const lines = content.split(/\r?\n/);
+  const tasks = [];
+  let current = null;
+
+  for (const line of lines) {
+    const heading = line.match(/^###\s+(TASK-[^:]+):\s*(.+)$/);
+    if (heading) {
+      if (current) {
+        tasks.push(current);
+      }
+      current = { id: heading[1].trim(), title: heading[2].trim(), bodyLines: [] };
+      continue;
+    }
+
+    if (current) {
+      current.bodyLines.push(line);
+    }
+  }
+
+  if (current) {
+    tasks.push(current);
+  }
+
+  return tasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    body: task.bodyLines.join("\n"),
+  }));
+}
+
 function pathMatches(pattern, file) {
   if (pattern instanceof RegExp) {
     return pattern.test(file);
@@ -144,16 +202,29 @@ function readWorkstreams() {
 }
 
 function readActiveInitiatives() {
-  return listActiveInitiativeTaskFiles().map((file) => {
+  return listActiveInitiativeTaskFiles().flatMap((file) => {
     const content = readFileSync(file, "utf8");
     const initiativeDir = file.replace(/\/04-任务拆解\.md$/, "");
-    return {
+    const initiativeId = initiativeDir.split("/").pop() || initiativeDir;
+    const tasks = taskSections(content);
+
+    if (!tasks.length) {
+      return [{
+        file,
+        id: initiativeId,
+        status: "active",
+        allowedPaths: readListFields(content, "allowed_paths"),
+        blockedPaths: readListFields(content, "blocked_paths"),
+      }];
+    }
+
+    return tasks.map((task) => ({
       file,
-      id: initiativeDir.split("/").pop() || initiativeDir,
-      status: "active",
-      allowedPaths: readListSection(content, "allowed_paths"),
-      blockedPaths: readListSection(content, "blocked_paths"),
-    };
+      id: `${initiativeId}/${task.id}`,
+      status: field(task.body, "status") || "planned",
+      allowedPaths: readListFields(task.body, "allowed_paths"),
+      blockedPaths: readListFields(task.body, "blocked_paths"),
+    }));
   });
 }
 

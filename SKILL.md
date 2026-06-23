@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.7-dev
+version: 0.12.8-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.7-dev
+version: 0.12.8-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -120,7 +120,7 @@ Use $white-tower 审查并推进需求单
 - 根据产品级 UI/UX 风格自动设计每个 initiative 的需求级 UI/UX，并写入 `02-界面设计.md`、截图、引用和设计资产。
 - 需求级 UI/UX 完成后向用户给 review 摘要；如果只是局部页面设计，不先问用户才开始设计。
 - 生成和推进 `03-技术方案.md`，保持 UI 与数据分离、MVVM / ViewModel 等分层约束。
-- 生成和维护 `04-任务拆解.md`、allowed paths、blocked paths、verification、依赖、目标分支和 task DAG。
+- 生成和维护细粒度 `04-任务拆解.md`、allowed paths、blocked paths、verification、依赖、目标分支和 task DAG；默认按工程壳、UI token、领域模型、页面、状态集成、验收等层级拆分，而不是把一个需求压成一个大任务。
 - 在条件满足后移动 initiative 状态、写 checkpoint / run record、派发多 agent 或顺序 fallback 实施。
 - 运行验证、更新验收记录、反写 `docs/product/PRD.md`、`docs/product/UI.md`、`docs/product/TECH.md` 和 release handoff。
 
@@ -368,6 +368,8 @@ execution_lock:
    - `allowed_paths`、`blocked_paths`、`verification`、`merge_target` 均已声明。
    - `can_parallel=true` 且 `allowed_paths` 不与其他并发任务冲突时才可并发。
    - `conflict_risk=high`、`contract_changes != none` 或涉及 shared schema / router / migration 的任务顺序执行。
+   - 如果发现 `04-任务拆解.md` 只有一个大任务，或所有任务被不必要地串成 `TASK-001A -> TASK-002A -> TASK-003A`，先自动重写为分层细粒度 DAG，再 dispatch。
+   - 页面、Tab、空状态、局部 ViewModel、领域纯模型、UI token、测试夹具等路径不重叠的切片应优先并行；共享入口、路由、manifest、公共契约和最终集成才顺序执行。
 4. **选择执行器**：
    - 如果当前环境有 Codex 多 agent 工具，优先使用 worker subagents；每个 worker 只负责一个任务和明确的 `allowed_paths`。
    - 如果当前环境是 OMP，或可用 OMP `task` 子代理工具，使用 OMP task agents。
@@ -577,6 +579,10 @@ node scripts/check-stage-gate.mjs --staged
 - `migration_level=breaking` 时，必须新增或更新 ADR。
 - `04-任务拆解.md` 的每个任务必须声明 `source_plan_sections`、`deliverable`、`acceptance_slice`、`contract_changes` 和 `review_focus`。
 - `source_plan_sections` 必须能在同一 initiative 的 `03-技术方案.md` 中找到对应章节。
+- `04-任务拆解.md` 默认必须细拆到“一个 agent 能稳定完成的最小验证切片”。优先按层拆分：工程/包骨架、UI token、领域模型、数据接口、单页面或单 Tab、单个 ViewModel、状态集成、验收记录。
+- 不要把“首页框架、启动页、相册页、导入页、领域校验、存储实现”合成一个任务；这类任务应拆成多个 `TASK-*`，并用 `depends_on` 表达最小依赖。
+- 拆任务时先找可并行层：例如首页 Tab 壳完成后，首页、相册页、导入页等 Tab 页面只要 `allowed_paths` 不重叠就应该并行；不要因为它们属于同一个 initiative 就串行。
+- 每个任务的 `allowed_paths` 应尽量窄，指向具体 package、feature、page、test 或文档；只有工程 manifest、路由入口、公共契约和集成验收任务允许较宽路径。
 
 ### Initiative 模型
 
@@ -654,7 +660,7 @@ hotfix_018_login_crash
 - 需求级边界由 `docs/workstreams/<status>/<workstream-id>.md` 管理，决定白塔处理某个需求时能改哪些路径。
 - 阶段 1-3 或 `gate_mode=source-locked` 时，即使有多个 workstream，白塔自己也只能做文档、架构、TODO、架构决策、界面设计和自检准备。
 - 阶段 4 或 `gate_mode=development` 后，白塔自己的源码改动必须命中至少一个 active gate 的 `allowed_paths`：新版项目优先读取 `docs/initiatives/active/**/04-任务拆解.md`，legacy 项目兼容读取 `docs/workstreams/active/**` 或 `status=active` workstream。
-- 门禁脚本必须读取 `docs/initiatives/active/**/04-任务拆解.md` 中的 `allowed_paths` 和 `blocked_paths`；只检查旧 `docs/workstreams/active` 会导致新版 initiative 项目误报“没有 active workstream”。
+- 门禁脚本必须把 `docs/initiatives/active/**/04-任务拆解.md` 中的每个 `TASK-*` 当成独立 gate，分别读取该任务的 `allowed_paths:` 和 `blocked_paths:` 字段列表；不要把同一 initiative 所有任务的 blocked paths 合并成一个大黑名单，否则任务 A 的限制会误拦任务 B 的合法路径。只检查旧 `docs/workstreams/active` 或只找 `## allowed_paths` 标题会导致新版 initiative 项目误报“没有 active workstream”或路径未命中。
 - 如果多个 workstream 需要改共享契约、数据模型、架构边界，先补 architecture-decision 或在 workstream 中声明依赖。
 
 workstream 必须按状态目录组织：

@@ -93,6 +93,12 @@ recalculate the DAG and dispatch every non-conflicting runnable task up to
 `max_parallel`, based on `depends_on`, `can_parallel`, `allowed_paths`,
 `blocked_paths`, `conflict_risk`, and `contract_changes`.
 
+Task slicing should be fine-grained. A broad initiative should become a layered
+DAG such as app shell, UI tokens, domain model, startup page, home tab shell,
+album page, import page, and final integration. Pages or modules that only wait
+for the same foundation layer should run in parallel when their `allowed_paths`
+do not overlap.
+
 For OMP:
 
 ```bash
