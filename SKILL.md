@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.5-dev
+version: 0.12.6-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.5-dev
+version: 0.12.6-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -77,6 +77,7 @@ Use $white-tower 审查并推进需求单
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
 - “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成交付事项包，使用 `--create-initiatives`；新版目录固定为 `docs/initiatives/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
+- “实施计划 / 推进实施 / 自动推进项目”：执行端到端自动推进流水线；白塔先确认 PRD 和产品级 UI/UX 是否已确定，然后自动完成 initiative UI/UX、技术方案、任务切片、状态推进、dispatch、验证和记录。
 - “审查并推进需求单 / 推进需求单 / 批量推进技术方案”：执行 initiative 自动审查推进流程；不要要求用户逐个打开 `03-技术方案.md` 手动从 `draft` 改到 `review`。
 - “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
 - “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。如果当前阶段还不允许编码，自动转入“审查并推进需求单”或当前阶段补齐流程，不要把操作选择交给用户。
@@ -101,6 +102,29 @@ Use $white-tower 审查并推进需求单
  -> 验证
  -> 发布交接
 ```
+
+### 默认自治边界
+
+白塔的默认使用方式是“用户把关产品方向，白塔自动推进交付流水线”。
+
+用户默认只需要确认：
+
+- PRD / 需求范围 / 优先级 / 非目标。
+- 产品级 UI/UX 风格、设计原则、视觉基调和交互偏好。
+- 白塔完成某个需求级 UI/UX 设计后的 review 结论。
+- 真正影响产品方向、全局设计风格、重大架构、破坏性数据迁移、外部服务、付费能力或删除用户已有改动的决策。
+
+白塔默认自主完成：
+
+- 根据已确认 PRD 生成或更新 initiative。
+- 根据产品级 UI/UX 风格自动设计每个 initiative 的需求级 UI/UX，并写入 `02-界面设计.md`、截图、引用和设计资产。
+- 需求级 UI/UX 完成后向用户给 review 摘要；如果只是局部页面设计，不先问用户才开始设计。
+- 生成和推进 `03-技术方案.md`，保持 UI 与数据分离、MVVM / ViewModel 等分层约束。
+- 生成和维护 `04-任务拆解.md`、allowed paths、blocked paths、verification、依赖、目标分支和 task DAG。
+- 在条件满足后移动 initiative 状态、写 checkpoint / run record、派发多 agent 或顺序 fallback 实施。
+- 运行验证、更新验收记录、反写 `docs/product/PRD.md`、`docs/product/UI.md`、`docs/product/TECH.md` 和 release handoff。
+
+不要把阶段状态、文件移动、`plan_status`、`lifecycle_state`、任务切片或 dispatch 选择交给用户手动操作。只有上面列出的人工决策项才需要停下来问。
 
 ### 新项目 Bootstrap
 
@@ -213,7 +237,7 @@ docs/initiatives/done/000_uiux_interaction_motion/
 3. 对每个 initiative 自动判断：
    - 必需文件是否存在。
    - `00-meta.md` 的 `status` 是否和外部目录一致，`lifecycle_state` 是否合理。
-   - `02-界面设计.md` 是否有可点击引用和内嵌预览图，缺失时能从仓库稳定路径补齐则自动补齐。
+   - `02-界面设计.md` 是否遵守已确认的产品级 UI/UX 风格、是否有可点击引用和内嵌预览图；缺失时白塔自动设计、导出或补齐，不先要求用户手动提供。
    - `03-技术方案.md` 是否包含必填章节、UI 与数据分离约束、影响范围、数据结构、状态流、错误处理、测试策略、兼容和回滚。
    - `plan_status=draft` 是否已经具备进入 `review` 的客观条件。
    - `04-任务拆解.md` 是否声明 `source_plan_sections`、交付物、验收切片、允许路径、阻塞路径、验证命令、依赖和目标分支。
@@ -228,6 +252,8 @@ docs/initiatives/done/000_uiux_interaction_motion/
 
 自动状态推进规则：
 
+- 如果 PRD 和产品级 UI/UX 已确认，但 initiative 缺少 `02-界面设计.md` 或设计资产，白塔先自动生成需求级 UI/UX 草稿和预览图，再进入技术方案推进。
+- 需求级 UI/UX 草稿完成后，白塔可以进入 review 摘要；用户未明确反对且没有全局风格冲突时，后续技术方案和任务切片可继续推进。
 - `plan_status=draft` 且必填章节完整、无明显占位、能约束实现、未解决问题不阻塞评审时，白塔可改为 `plan_status=review`。
 - `plan_status=review` 只有在用户或明确的评审记录批准后才能改为 `approved`。
 - 外部目录只使用 `planned/active/done/archived/`。准备、评审、暂停、阻塞等细状态写入 `lifecycle_state`，不要新建细状态目录。

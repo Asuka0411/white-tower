@@ -220,6 +220,14 @@ At each step:
 5. Write checkpoints before and after atomic actions.
 6. Record the result back into repository files.
 
+Default autonomy boundary:
+
+- The user confirms PRD scope, priority, non-goals, and product-level UI/UX style.
+- White Tower automatically designs initiative-level UI/UX from the confirmed product style, writes `02-界面设计.md`, embeds reviewable images, and then gives the user a review summary.
+- White Tower automatically creates or advances technical plans, task DAGs, allowed paths, verification, checkpoints, dispatch, validation, acceptance records, and release handoff.
+- White Tower asks the user only for product-scope changes, global style changes, major architecture choices, destructive changes, external services, paid capabilities, or final review decisions.
+- The user should not manually edit `current_stage`, `gate_mode`, `status`, `lifecycle_state`, or move initiative folders.
+
 White Tower uses checkpoint-first recovery. A final assistant summary is only a
 user-facing report. Recovery must use durable repo state:
 
