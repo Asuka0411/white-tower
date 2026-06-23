@@ -241,6 +241,21 @@ function replaceField(markdown, name, value) {
   return `${markdown.trimEnd()}\n${name}: ${value}\n`;
 }
 
+function setFieldAfter(markdown, name, value, afterName) {
+  const lines = markdown.split(/\r?\n/);
+  const fieldPattern = new RegExp(`^${name}:[ \\t]*`);
+  const afterPattern = new RegExp(`^${afterName}:[ \\t]*`);
+  const existingIndex = lines.findIndex((line) => fieldPattern.test(line));
+  if (existingIndex !== -1) {
+    lines.splice(existingIndex, 1);
+  }
+
+  const afterIndex = lines.findIndex((line) => afterPattern.test(line));
+  const insertIndex = afterIndex === -1 ? lines.length : afterIndex + 1;
+  lines.splice(insertIndex, 0, `${name}: ${value}`);
+  return lines.join("\n");
+}
+
 function trackMaybeEmptyRequirementDirs(source) {
   let dir = path.dirname(source);
   while (dir && dir !== "." && dir !== "docs/requirements") {
@@ -305,11 +320,18 @@ function migrateRequirementPackages() {
       );
       targetLifecycleState = targetStatus;
     }
-    if (rawLifecycleState !== targetLifecycleState) {
+    const lifecycleMetaPath = `${finalDir}/00-meta.md`;
+    const lifecycleMeta = read(lifecycleMetaPath);
+    const nextLifecycleMeta = setFieldAfter(
+      lifecycleMeta,
+      "lifecycle_state",
+      targetLifecycleState,
+      "status",
+    );
+    if (lifecycleMeta !== nextLifecycleMeta) {
       operations.push(`update lifecycle_state in ${finalDir}/00-meta.md to ${targetLifecycleState}`);
       if (write) {
-        const metaPath = `${finalDir}/00-meta.md`;
-        writeFile(metaPath, replaceField(read(metaPath), "lifecycle_state", targetLifecycleState));
+        writeFile(lifecycleMetaPath, nextLifecycleMeta);
       }
     }
   }
