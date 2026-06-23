@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.8.0-dev
+version: 0.9.0-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, stage gates, repository guardrails, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, requirement packages, Gitflow branch checks, pre-commit, pre-push, CI, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.8.0-dev
+version: 0.9.0-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -174,10 +174,70 @@ docs/requirements/2026/Q3/completed/000_uiux_interaction_motion/
 2. **Decide**：判断当前阶段、允许动作、禁止动作、下一步最小切片。
 3. **Act**：只执行一个阶段内的最小可验证动作。
 4. **Verify**：运行门禁脚本、仓库既有检查和与改动相关的最小验证。
-5. **Record**：更新 TODO、workstream、项目状态或 architecture-decision，使下一次会话能从仓库文件恢复。
-6. **Report**：总结改动、验证、阻塞、下一步。
+5. **Checkpoint**：在每个原子动作前后写入可恢复 checkpoint，而不是等本轮结束才记录。
+6. **Record**：更新 TODO、workstream、项目状态、architecture-decision、run record 和 task 状态，使下一次会话能从仓库文件恢复。
+7. **Report**：只总结已经写入仓库的状态；最终报告不能作为恢复依据。
 
 如果循环中发现阶段不满足，停止越级任务，改为补齐门禁产物。
+
+### Checkpoint-first 恢复模型
+
+白塔只使用 checkpoint-first 恢复模型。任何执行中断都必须能从最近 checkpoint、run record、task 状态和 git 状态恢复；不能依赖聊天上下文或最终总结。
+
+必须持续写入：
+
+```text
+<initiative-or-requirement>/
+├── 07_runs/
+│   ├── latest.md
+│   └── <run-id>.md
+└── 08_checkpoints/
+    ├── <timestamp>-before-edit.md
+    ├── <timestamp>-after-edit.md
+    ├── <timestamp>-before-verify.md
+    └── <timestamp>-after-verify.md
+```
+
+每次执行前后至少记录：
+
+- 当前 initiative / requirement ID。
+- 当前 phase 和 task。
+- 当前 branch、head commit、worker branch。
+- dirty files。
+- 最近一次动作。
+- 下一步动作。
+- verification 是否在最新 diff 后运行。
+- blocker、risk、manual question。
+
+`00-meta.md` 或等价状态文件必须能记录执行锁：
+
+```yaml
+execution_lock:
+  status: locked
+  run_id: <run-id>
+  owner: <agent-or-worker>
+  branch: <current-branch>
+  heartbeat_at: <timestamp>
+  ttl_minutes: 30
+```
+
+每次 checkpoint 都更新 `heartbeat_at`。如果下一次运行发现锁过期，必须先执行 stale-lock recovery：
+
+1. 标记上一轮 run 为 `interrupted`。
+2. 读取 `07_runs/latest.md` 和最新 checkpoint。
+3. 运行 `git status`。
+4. 对比 checkpoint 中的 dirty files 和当前 diff。
+5. 判断应继续、先验证、先回滚局部 WIP，还是请求人工确认。
+6. 创建新 run，写入 `resumed_from`，再继续。
+
+不要在非对话式中断后重新从 `planned` 派发同一任务。只允许恢复这些状态：
+
+- `status=active` 且 heartbeat 过期。
+- `status=paused`。
+- `status=blocked` 且 blocker 已解除。
+- `status=planned` 且没有任何 active/run/checkpoint 记录。
+
+最终报告只是用户可读摘要；如果报告内容没有落入 `07_runs/`、`08_checkpoints/`、`04-任务拆解.md` 或状态文件，就不算可恢复事实。
 
 ### 自动推进边界
 

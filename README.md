@@ -12,6 +12,7 @@
 - **工作流隔离**：用 `docs/workstreams/` 管理并行需求，每个需求声明允许路径、阻塞路径和验收方式。
 - **技术方案治理**：需求级技术方案声明状态、迁移等级、分层约束、影响范围、测试策略、回滚方案和 ADR 要求。
 - **任务追溯**：任务切片必须引用技术方案章节，并声明交付物、验收切片、契约变更和评审重点。
+- **Checkpoint-first 恢复**：执行中持续写入 run record、checkpoint、task 状态和 git 状态；最终报告不是恢复依据。
 - **AI 友好交接**：让下一次对话、下一位开发者或下一个 agent 只看仓库文件就能恢复上下文。
 
 ## Repository Layout
@@ -174,7 +175,23 @@ At each step:
 2. Decide the current stage and allowed actions.
 3. Perform one small action that belongs to that stage.
 4. Verify with deterministic checks.
-5. Record the result back into repository files.
+5. Write checkpoints before and after atomic actions.
+6. Record the result back into repository files.
+
+White Tower uses checkpoint-first recovery. A final assistant summary is only a
+user-facing report. Recovery must use durable repo state:
+
+```text
+07_runs/latest.md
+08_checkpoints/<timestamp>.md
+04-任务拆解.md
+00-meta.md or equivalent status metadata
+git status / branch / commit state
+```
+
+On token limits, IDE crashes, power loss, worker failure, or stale locks, the
+next run must first reconstruct state from the latest checkpoint and git diff,
+then either continue, verify current WIP, mark blocked, or ask for human input.
 
 ## Requirement Package Model
 
