@@ -3,6 +3,7 @@
 requirement_id: 012
 title: <需求标题>
 status: planned
+lifecycle_state: planned
 priority: P1
 owner:
 created_at:
@@ -16,6 +17,6 @@ linked_branches:
 ## 状态历史
 
 - planned:
-- in-progress:
-- completed:
+- active:
+- done:
 - archived:

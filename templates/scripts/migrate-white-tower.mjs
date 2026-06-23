@@ -6,6 +6,7 @@ import {
   readdirSync,
   readFileSync,
   renameSync,
+  rmdirSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -15,7 +16,6 @@ const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith("--
 const root = positionalArgs[0] ? path.resolve(positionalArgs[0]) : process.cwd();
 const write = process.argv.includes("--write");
 const createRequirements = process.argv.includes("--create-requirements");
-const requirementsPeriodArg = optionValue("requirements-period");
 
 const workstreamStates = new Set(["draft", "ready", "active", "blocked", "done", "archived"]);
 const statusAliases = new Map([
@@ -28,48 +28,56 @@ const operations = [];
 const warnings = [];
 const replacements = new Map();
 const scheduledRequirementTargets = new Set();
-const requirementsPeriod = normalizedRequirementsPeriod(requirementsPeriodArg);
+const maybeEmptyRequirementDirs = new Set();
 
-const requirementStatuses = new Set(["planned", "in-progress", "completed", "archived"]);
+const requirementFolderStates = new Set(["planned", "active", "done", "archived"]);
+const requirementLifecycleStates = new Set([
+  "planned",
+  "preparing",
+  "ready",
+  "active",
+  "review",
+  "paused",
+  "blocked",
+  "done",
+  "archived",
+]);
+const requirementStatusAliases = new Map([
+  ["draft", "planned"],
+  ["ready", "planned"],
+  ["preparing", "planned"],
+  ["in-progress", "active"],
+  ["review", "active"],
+  ["paused", "active"],
+  ["blocked", "active"],
+  ["completed", "done"],
+  ["cancelled", "archived"],
+]);
+const requirementLifecycleAliases = new Map([
+  ["draft", "planned"],
+  ["in-progress", "active"],
+  ["completed", "done"],
+  ["cancelled", "archived"],
+]);
 const requirementStatusByWorkstreamStatus = new Map([
   ["draft", "planned"],
   ["ready", "planned"],
-  ["blocked", "planned"],
-  ["active", "in-progress"],
-  ["done", "completed"],
+  ["blocked", "active"],
+  ["active", "active"],
+  ["done", "done"],
+  ["archived", "archived"],
+]);
+const requirementLifecycleByWorkstreamStatus = new Map([
+  ["draft", "planned"],
+  ["ready", "ready"],
+  ["blocked", "blocked"],
+  ["active", "active"],
+  ["done", "done"],
   ["archived", "archived"],
 ]);
 
 function relative(...segments) {
   return path.join(root, ...segments);
-}
-
-function optionValue(name) {
-  const prefix = `--${name}=`;
-  const match = process.argv.find((arg) => arg.startsWith(prefix));
-  return match ? match.slice(prefix.length) : "";
-}
-
-function defaultRequirementsPeriod(date = new Date()) {
-  const year = date.getFullYear();
-  const quarter = Math.floor(date.getMonth() / 3) + 1;
-  return `${year}/Q${quarter}`;
-}
-
-function normalizedRequirementsPeriod(value) {
-  if (!value) {
-    return defaultRequirementsPeriod();
-  }
-
-  const match = value.match(/^(\d{4})\/q([1-4])$/i);
-  if (!match) {
-    warnings.push(
-      `invalid --requirements-period=${value}; use YYYY/QX, e.g. 2026/Q3. Falling back to ${defaultRequirementsPeriod()}.`,
-    );
-    return defaultRequirementsPeriod();
-  }
-
-  return `${match[1]}/Q${match[2]}`;
 }
 
 function toPosix(filePath) {
@@ -162,45 +170,6 @@ function listWorkstreamFiles() {
     .sort();
 }
 
-function migrateUnperiodedRequirementPackages() {
-  const requirementsDir = relative("docs", "requirements");
-  if (!existsSync(requirementsDir)) {
-    return;
-  }
-
-  for (const status of requirementStatuses) {
-    const statusDir = relative("docs", "requirements", status);
-    if (!existsSync(statusDir) || !statSync(statusDir).isDirectory()) {
-      continue;
-    }
-
-    for (const entry of readdirSync(statusDir, { withFileTypes: true })) {
-      if (!entry.isDirectory()) {
-        continue;
-      }
-
-      const source = `docs/requirements/${status}/${entry.name}`;
-      if (!exists(source, "00-meta.md")) {
-        continue;
-      }
-
-      const target = `docs/requirements/${requirementsPeriod}/${status}/${entry.name}`;
-      if (exists(target)) {
-        warnings.push(`${target} already exists; cannot auto-move ${source}.`);
-        continue;
-      }
-
-      operations.push(`move ${source}/ -> ${target}/`);
-      replacements.set(source, target);
-      scheduledRequirementTargets.add(target);
-      if (write) {
-        mkdirSync(path.dirname(relative(target)), { recursive: true });
-        renameSync(relative(source), relative(target));
-      }
-    }
-  }
-}
-
 function ensureWorkstreamStateDirs() {
   if (!exists("docs", "workstreams")) {
     return;
@@ -214,6 +183,133 @@ function ensureWorkstreamStateDirs() {
       mkdirSync(dir, { recursive: true });
       if (!existsSync(keep)) {
         writeFileSync(keep, "");
+      }
+    }
+  }
+}
+
+function normalizedRequirementFolderStatus(status) {
+  if (requirementFolderStates.has(status)) {
+    return status;
+  }
+  return requirementStatusAliases.get(status) || "";
+}
+
+function normalizedRequirementLifecycleState(status, fallbackStatus) {
+  if (requirementLifecycleStates.has(status)) {
+    return status;
+  }
+  if (requirementLifecycleAliases.has(status)) {
+    return requirementLifecycleAliases.get(status);
+  }
+  return fallbackStatus;
+}
+
+function requirementFolderStatusForLifecycle(lifecycleState) {
+  if (["planned", "preparing", "ready"].includes(lifecycleState)) {
+    return "planned";
+  }
+  if (["active", "review", "paused", "blocked"].includes(lifecycleState)) {
+    return "active";
+  }
+  if (lifecycleState === "done") {
+    return "done";
+  }
+  if (lifecycleState === "archived") {
+    return "archived";
+  }
+  return "";
+}
+
+function listRequirementPackageDirs() {
+  const absoluteDir = relative("docs", "requirements");
+  if (!existsSync(absoluteDir)) {
+    return [];
+  }
+
+  return listMarkdownFiles("docs/requirements")
+    .filter((file) => path.basename(file) === "00-meta.md")
+    .map((file) => toPosix(path.dirname(file)))
+    .sort((a, b) => b.length - a.length);
+}
+
+function replaceField(markdown, name, value) {
+  const pattern = new RegExp(`^${name}:[ \\t]*(.*)$`, "m");
+  if (pattern.test(markdown)) {
+    return markdown.replace(pattern, `${name}: ${value}`);
+  }
+  return `${markdown.trimEnd()}\n${name}: ${value}\n`;
+}
+
+function trackMaybeEmptyRequirementDirs(source) {
+  let dir = path.dirname(source);
+  while (dir && dir !== "." && dir !== "docs/requirements") {
+    maybeEmptyRequirementDirs.add(toPosix(dir));
+    dir = path.dirname(dir);
+  }
+}
+
+function migrateRequirementPackages() {
+  if (!exists("docs", "requirements")) {
+    return;
+  }
+
+  for (const source of listRequirementPackageDirs()) {
+    const packageName = path.basename(source);
+    const meta = read(`${source}/00-meta.md`);
+    const rawStatus = field(meta, "status");
+    const rawLifecycleState = field(meta, "lifecycle_state");
+    const pathStatus = source.split("/").at(-2) || "";
+    const targetStatus = normalizedRequirementFolderStatus(rawStatus)
+      || normalizedRequirementFolderStatus(pathStatus);
+
+    if (!targetStatus) {
+      warnings.push(`${source} has no recognized requirement status; leave in place for manual review.`);
+      continue;
+    }
+
+    const target = `docs/requirements/${targetStatus}/${packageName}`;
+    const shouldMove = source !== target;
+    if (shouldMove && exists(target)) {
+      warnings.push(`${target} already exists; cannot auto-move ${source}.`);
+      continue;
+    }
+
+    let finalDir = source;
+    if (shouldMove) {
+      operations.push(`move ${source}/ -> ${target}/`);
+      replacements.set(source, target);
+      scheduledRequirementTargets.add(target);
+      trackMaybeEmptyRequirementDirs(source);
+      finalDir = target;
+      if (write) {
+        mkdirSync(path.dirname(relative(target)), { recursive: true });
+        renameSync(relative(source), relative(target));
+      }
+    }
+
+    if (rawStatus !== targetStatus) {
+      operations.push(`update status in ${finalDir}/00-meta.md to ${targetStatus}`);
+      if (write) {
+        const metaPath = `${finalDir}/00-meta.md`;
+        writeFile(metaPath, replaceField(read(metaPath), "status", targetStatus));
+      }
+    }
+
+    let targetLifecycleState = normalizedRequirementLifecycleState(rawLifecycleState, "")
+      || normalizedRequirementLifecycleState(rawStatus, targetStatus)
+      || normalizedRequirementLifecycleState(pathStatus, targetStatus);
+    if (requirementFolderStatusForLifecycle(targetLifecycleState) !== targetStatus) {
+      warnings.push(
+        `${finalDir}/00-meta.md lifecycle_state=${targetLifecycleState} conflicts with status=${targetStatus}; reset lifecycle_state to ${targetStatus}.`,
+      );
+      targetLifecycleState = targetStatus;
+    }
+    if (rawLifecycleState !== targetLifecycleState) {
+      operations.push(`update lifecycle_state in ${finalDir}/00-meta.md to ${targetLifecycleState}`);
+      if (write) {
+        const metaPath = `${finalDir}/00-meta.md`;
+        writeFile(metaPath, replaceField(read(metaPath), "lifecycle_state", targetLifecycleState));
       }
     }
   }
@@ -257,13 +353,13 @@ function titleFromWorkstream(markdown, fallback) {
 }
 
 function taskStatusFromRequirementStatus(status) {
-  if (status === "completed") {
+  if (status === "done") {
     return "done";
   }
   if (status === "archived") {
     return "archived";
   }
-  if (status === "in-progress") {
+  if (status === "active") {
     return "planned";
   }
   return "planned";
@@ -274,7 +370,7 @@ function listOrFallback(items, fallback) {
   return values.map((item) => `- ${item}`).join("\n");
 }
 
-function generatedMeta({ id, title, requirementStatus, branch, source }) {
+function generatedMeta({ id, title, requirementStatus, lifecycleState, branch, source }) {
   const archiveReason = requirementStatus === "archived"
     ? "\n## 归档原因\n\n- Legacy workstream was archived before requirement-package migration.\n"
     : "";
@@ -284,6 +380,7 @@ function generatedMeta({ id, title, requirementStatus, branch, source }) {
 requirement_id: ${id}
 title: ${title}
 status: ${requirementStatus}
+lifecycle_state: ${lifecycleState}
 priority: P1
 owner:
 created_at:
@@ -297,8 +394,8 @@ linked_branches:
 ## 状态历史
 
 - planned: generated from legacy workstream.
-- in-progress:
-- completed:
+- active:
+- done:
 - archived:
 ${archiveReason}`;
 }
@@ -524,7 +621,7 @@ commit_policy: one coherent commit after verification
 }
 
 function generatedAcceptance({ requirementStatus }) {
-  const checked = requirementStatus === "completed" ? "x" : " ";
+  const checked = requirementStatus === "done" ? "x" : " ";
   return `# 05-验收记录
 
 ## 验收范围
@@ -617,7 +714,8 @@ function createLegacyRequirementPackages() {
     }
 
     const requirementStatus = requirementStatusByWorkstreamStatus.get(workstreamStatus) || "planned";
-    const targetDir = `docs/requirements/${requirementsPeriod}/${requirementStatus}/${descriptor.name}`;
+    const lifecycleState = requirementLifecycleByWorkstreamStatus.get(workstreamStatus) || requirementStatus;
+    const targetDir = `docs/requirements/${requirementStatus}/${descriptor.name}`;
     if (exists(targetDir) || scheduledRequirementTargets.has(targetDir)) {
       warnings.push(`${targetDir} already exists; skip generated requirement package for ${source}.`);
       continue;
@@ -638,6 +736,7 @@ function createLegacyRequirementPackages() {
         id: descriptor.id,
         title,
         requirementStatus,
+        lifecycleState,
         branch: descriptor.branch,
         source: canonicalSource,
       })],
@@ -754,11 +853,29 @@ function detectLegacyRequirementLayout() {
   }
 }
 
+function removeEmptyRequirementDirs() {
+  const dirs = Array.from(maybeEmptyRequirementDirs).sort((a, b) => b.length - a.length);
+  for (const dir of dirs) {
+    const absolute = relative(dir);
+    if (!existsSync(absolute) || !statSync(absolute).isDirectory()) {
+      continue;
+    }
+    if (readdirSync(absolute).length > 0) {
+      continue;
+    }
+    operations.push(`remove empty ${dir}/`);
+    if (write) {
+      rmdirSync(absolute);
+    }
+  }
+}
+
 ensureWorkstreamStateDirs();
 migrateFlatWorkstreams();
-migrateUnperiodedRequirementPackages();
+migrateRequirementPackages();
 updateMarkdownReferences();
 createLegacyRequirementPackages();
+removeEmptyRequirementDirs();
 detectLegacyRequirementLayout();
 
 console.log(`White Tower migration ${write ? "applied" : "dry-run"} at ${root}`);
@@ -784,8 +901,8 @@ if (!operations.length && !warnings.length) {
 if (!write) {
   console.log("\nRun with --write to apply safe migrations.");
   if (!createRequirements) {
-    console.log("Run with --create-requirements to also generate docs/requirements/YYYY/QX compatibility packages.");
+    console.log("Run with --create-requirements to also generate docs/requirements compatibility packages.");
   } else {
-    console.log(`Using requirement period: ${requirementsPeriod}. Override with --requirements-period=YYYY/QX.`);
+    console.log("Requirement packages use docs/requirements/<planned|active|done|archived>/<id_slug>/.");
   }
 }

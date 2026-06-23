@@ -174,6 +174,33 @@ const requiredTechnicalSections = [
 
 const validPlanStatuses = new Set(["draft", "review", "approved", "superseded"]);
 const validMigrationLevels = new Set(["none", "compatible", "breaking"]);
+const validFolderStatuses = new Set(["planned", "active", "done", "archived"]);
+const validLifecycleStates = new Set([
+  "planned",
+  "preparing",
+  "ready",
+  "active",
+  "review",
+  "paused",
+  "blocked",
+  "done",
+  "archived",
+]);
+function folderStatusForLifecycle(lifecycleState) {
+  if (["planned", "preparing", "ready"].includes(lifecycleState)) {
+    return "planned";
+  }
+  if (["active", "review", "paused", "blocked"].includes(lifecycleState)) {
+    return "active";
+  }
+  if (lifecycleState === "done") {
+    return "done";
+  }
+  if (lifecycleState === "archived") {
+    return "archived";
+  }
+  return "";
+}
 
 if (branchName && !validBranch(branchName)) {
   errors.push(`Invalid branch name: ${branchName}. Use lowercase underscores, e.g. feat_012_import_folder.`);
@@ -201,7 +228,17 @@ for (const packageDir of packages) {
   const meta = read(`${packageDir}/00-meta.md`);
   const requirementId = field(meta, "requirement_id");
   const status = field(meta, "status");
-  const pathStatus = packageDir.split("/").at(-2);
+  const lifecycleState = field(meta, "lifecycle_state");
+  const pathParts = packageDir.split("/");
+  const pathStatus = pathParts.at(-2);
+
+  if (pathParts.length !== 4) {
+    errors.push(`${packageDir} must be directly under docs/requirements/<planned|active|done|archived>/, without year or quarter folders.`);
+  }
+
+  if (!validFolderStatuses.has(pathStatus)) {
+    errors.push(`${packageDir} must be under planned, active, done, or archived.`);
+  }
 
   if (!requirementId) {
     errors.push(`${packageDir}/00-meta.md must declare requirement_id.`);
@@ -211,8 +248,18 @@ for (const packageDir of packages) {
 
   if (!status) {
     errors.push(`${packageDir}/00-meta.md must declare status.`);
+  } else if (!validFolderStatuses.has(status)) {
+    errors.push(`${packageDir}/00-meta.md status=${status} must be one of planned, active, done, archived. Use lifecycle_state for finer states.`);
   } else if (status !== pathStatus) {
     errors.push(`${packageDir}/00-meta.md status=${status} does not match folder ${pathStatus}/.`);
+  }
+
+  if (!lifecycleState) {
+    errors.push(`${packageDir}/00-meta.md must declare lifecycle_state.`);
+  } else if (!validLifecycleStates.has(lifecycleState)) {
+    errors.push(`${packageDir}/00-meta.md lifecycle_state=${lifecycleState} must be one of planned, preparing, ready, active, review, paused, blocked, done, archived.`);
+  } else if (folderStatusForLifecycle(lifecycleState) !== pathStatus) {
+    errors.push(`${packageDir}/00-meta.md lifecycle_state=${lifecycleState} belongs under ${folderStatusForLifecycle(lifecycleState)}/, but folder is ${pathStatus}/.`);
   }
 
   const linkedBranches = listField(meta, "linked_branches");
@@ -330,7 +377,7 @@ for (const packageDir of packages) {
     }
   }
 
-  if (status === "completed") {
+  if (status === "done") {
     const acceptance = exists(`${packageDir}/05-验收记录.md`)
       ? read(`${packageDir}/05-验收记录.md`)
       : "";

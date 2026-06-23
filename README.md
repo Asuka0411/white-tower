@@ -126,25 +126,34 @@ references, and warns when a legacy PRD/workstream layout has not been converted
 into requirement packages yet.
 
 Generate compatibility requirement packages when an older project should move to
-`docs/requirements/YYYY/QX/<status>/<id_slug>/`:
+the current requirement-package layout:
 
 ```bash
 node scripts/migrate-white-tower.mjs --create-requirements
-node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3
-node scripts/migrate-white-tower.mjs --create-requirements --requirements-period=2026/Q3 --write
+node scripts/migrate-white-tower.mjs --create-requirements --write
 ```
 
-When `--requirements-period` is omitted, the script derives the period from the
-current date. If an older migration already created unperioded packages such as
-`docs/requirements/planned/002_app_shell_theme/`, the script moves them into the
-selected `YYYY/QX` period.
+Requirement packages use a small set of external folders. Detailed lifecycle
+states such as `preparing`, `ready`, `review`, `paused`, and `blocked` live in
+`00-meta.md` as `lifecycle_state`:
+
+```text
+docs/requirements/planned/
+docs/requirements/active/
+docs/requirements/done/
+docs/requirements/archived/
+```
+
+If an older migration created perioded packages such as
+`docs/requirements/2026/Q3/in-progress/002_app_shell_theme/`, the script moves
+them into the flat status layout and updates Markdown references.
 
 This mode creates packages such as:
 
 ```text
-docs/requirements/2026/Q3/in-progress/001_library_bootstrap/
-docs/requirements/2026/Q3/planned/002_app_shell_theme/
-docs/requirements/2026/Q3/completed/000_uiux_interaction_motion/
+docs/requirements/active/001_library_bootstrap/
+docs/requirements/planned/002_app_shell_theme/
+docs/requirements/done/000_uiux_interaction_motion/
 ```
 
 Generated packages keep `human_review_required: true` and reference legacy PRD,
@@ -198,7 +207,7 @@ then either continue, verify current WIP, mark blocked, or ask for human input.
 For ongoing product work, one requirement should keep its PRD, interface design, technical plan, task breakdown, acceptance record, and release handoff together:
 
 ```text
-docs/requirements/2026/Q3/in-progress/012_import_folder/
+docs/requirements/active/012_import_folder/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -207,6 +216,14 @@ docs/requirements/2026/Q3/in-progress/012_import_folder/
 ├── 04-任务拆解.md
 ├── 05-验收记录.md
 └── 06-发布交接.md
+```
+
+`00-meta.md` keeps `status` aligned with the folder and records finer workflow
+state separately:
+
+```yaml
+status: active
+lifecycle_state: review
 ```
 
 Global product facts stay separate and must be updated when a requirement is completed:

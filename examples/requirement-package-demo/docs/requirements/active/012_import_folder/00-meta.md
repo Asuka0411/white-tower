@@ -2,7 +2,8 @@
 
 requirement_id: 012
 title: 导入文件夹增量扫描
-status: in-progress
+status: active
+lifecycle_state: active
 priority: P1
 owner: white-tower-demo
 created_at: 2026-06-22
@@ -17,4 +18,4 @@ linked_branches:
 ## 状态历史
 
 - planned: 2026-06-20
-- in-progress: 2026-06-22
+- active: 2026-06-22

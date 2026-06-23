@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Simplified requirement package folders to `planned/`, `active/`, `done/`, and `archived/`; finer states now live in `00-meta.md` as `lifecycle_state`.
+- Removed year/quarter requirement-package folders and `--requirements-period` from the migration workflow.
 - Changed phase checks from hard project enforcement to White Tower self-governance by default.
 - Added checkpoint-first run recovery rules.
-- Added migration repair for unperioded generated requirement packages from older `--create-requirements` runs.
-- Changed generated legacy requirement packages to use `docs/requirements/YYYY/QX/<status>/<id_slug>/` with `--requirements-period` override.
+- Added migration repair for perioded generated requirement packages from older `--create-requirements` runs.
 - Added optional legacy workstream-to-requirement-package generation with `--create-requirements`.
 - Added a legacy migration script for old workstream layouts.
 - Added legacy compatibility rules for upgraded skills.

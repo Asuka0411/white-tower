@@ -52,22 +52,22 @@ docs/workstreams/
 
 `status` 必须和所在目录一致。完成后移入 `done/`，归档后移入 `archived/` 并写明原因。
 
-需求包按时间和状态组织：
+需求包只按少数外部状态组织，不再按年份或季度分层：
 
 ```text
 docs/requirements/
-└── 2026/
-    └── Q3/
-        ├── planned/
-        ├── in-progress/
-        ├── completed/
-        └── archived/
+├── planned/
+├── active/
+├── done/
+└── archived/
 ```
+
+更细的识别状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。
 
 单个需求包结构：
 
 ```text
-docs/requirements/2026/Q3/in-progress/012_import_folder/
+docs/requirements/active/012_import_folder/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -245,7 +245,7 @@ fix_012_scan_error
 
 ## 反写规则
 
-需求完成后不能只移动到 `completed/`。必须反写全局事实：
+需求完成后不能只移动到 `done/`。必须反写全局事实：
 
 - 产品能力变化反写 `docs/product/PRD.md`。
 - 页面、交互、视觉规范变化反写 `docs/product/UI.md`。
