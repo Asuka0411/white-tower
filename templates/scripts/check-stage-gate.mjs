@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const stagedOnly = process.argv.includes("--staged");
+const workstreamsDir = "docs/workstreams";
+const initiativesDir = "docs/initiatives";
 
 function read(path) {
   return existsSync(path) ? readFileSync(path, "utf8") : "";
@@ -39,6 +41,120 @@ function gitChangedPaths() {
 function field(markdown, name) {
   const match = markdown.match(new RegExp(`^${name}:\\s*(.+)$`, "m"));
   return match ? match[1].trim() : "";
+}
+
+function readListSection(content, section) {
+  const heading = `## ${section}`;
+  const start = content.indexOf(heading);
+  if (start === -1) {
+    return [];
+  }
+
+  const rest = content.slice(start + heading.length);
+  const nextHeading = rest.search(/\n##\s+/);
+  const body = nextHeading === -1 ? rest : rest.slice(0, nextHeading);
+  return body
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .map((line) => line.slice(2).trim())
+    .filter(Boolean);
+}
+
+function pathMatches(pattern, file) {
+  if (pattern instanceof RegExp) {
+    return pattern.test(file);
+  }
+  if (pattern.endsWith("/**")) {
+    return file.startsWith(pattern.slice(0, -3));
+  }
+  if (pattern.endsWith("**")) {
+    return file.startsWith(pattern.slice(0, -2));
+  }
+  return file === pattern || file.startsWith(`${pattern}/`);
+}
+
+function anyPatternMatches(patterns, file) {
+  return patterns.some((pattern) => pathMatches(pattern, file));
+}
+
+function listMarkdownFiles(rootDir) {
+  if (!existsSync(rootDir)) {
+    return [];
+  }
+
+  const files = [];
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) {
+        visit(path);
+        continue;
+      }
+      if (entry.isFile() && entry.name.endsWith(".md")) {
+        files.push(path);
+      }
+    }
+  };
+
+  visit(rootDir);
+  return files.sort();
+}
+
+function listActiveInitiativeTaskFiles() {
+  const activeDir = `${initiativesDir}/active`;
+  if (!existsSync(activeDir)) {
+    return [];
+  }
+
+  const files = [];
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) {
+        visit(path);
+        continue;
+      }
+      if (entry.isFile() && entry.name === "04-任务拆解.md") {
+        files.push(path);
+      }
+    }
+  };
+
+  visit(activeDir);
+  return files.sort();
+}
+
+function readWorkstreams() {
+  return listMarkdownFiles(workstreamsDir)
+    .filter((file) => {
+      const name = file.split("/").pop();
+      return name !== "README.md" && name !== "template.md";
+    })
+    .map((file) => {
+      const content = readFileSync(file, "utf8");
+      return {
+        file,
+        id: field(content, "workstream_id") || file,
+        status: field(content, "status") || "draft",
+        allowedPaths: readListSection(content, "allowed_paths"),
+        blockedPaths: readListSection(content, "blocked_paths"),
+      };
+    });
+}
+
+function readActiveInitiatives() {
+  return listActiveInitiativeTaskFiles().map((file) => {
+    const content = readFileSync(file, "utf8");
+    const initiativeDir = file.replace(/\/04-任务拆解\.md$/, "");
+    return {
+      file,
+      id: initiativeDir.split("/").pop() || initiativeDir,
+      status: "active",
+      allowedPaths: readListSection(content, "allowed_paths"),
+      blockedPaths: readListSection(content, "blocked_paths"),
+    };
+  });
 }
 
 function fail(messages) {
@@ -95,6 +211,21 @@ const errors = [];
 
 const sourceLocked = gateMode === "source-locked" || /^([123])-/.test(currentStage);
 
+const alwaysAllowedInDevelopment = [
+  /^docs\//,
+  /^TODO\.md$/,
+  /^README\.md$/,
+  /^sketches\//,
+  /^outputs\/uiux\//,
+  /^scripts\/check-stage-gate\.mjs$/,
+  /^scripts\/check-initiative-package\.mjs$/,
+  /^scripts\/check-requirement-package\.mjs$/,
+  /^scripts\/migrate-white-tower\.mjs$/,
+  /^\.github\//,
+  /^lefthook\.yml$/,
+  /^\.pre-commit-config\.yaml$/,
+];
+
 const blockedSourcePatterns = [
   /^app\//,
   /^apps\//,
@@ -138,6 +269,43 @@ if (gateMode === "development" || /^([45])-/.test(currentStage)) {
 
   if (!existsSync("TODO.md")) {
     errors.push("development mode requires TODO.md");
+  }
+
+  const activeGates = [
+    ...readWorkstreams().filter((workstream) => workstream.status === "active"),
+    ...readActiveInitiatives(),
+  ];
+  const developmentFiles = changed.filter(
+    (path) => !anyPatternMatches(alwaysAllowedInDevelopment, path),
+  );
+
+  if (developmentFiles.length > 0 && activeGates.length === 0) {
+    errors.push(
+      "development mode found implementation changes, but docs/initiatives/active or docs/workstreams has no active initiative/workstream gate.",
+    );
+  }
+
+  for (const path of developmentFiles) {
+    const matched = activeGates.filter((gate) =>
+      anyPatternMatches(gate.allowedPaths, path),
+    );
+    if (matched.length === 0) {
+      errors.push(
+        `${path} does not match any active initiative/workstream allowed_paths.`,
+      );
+      continue;
+    }
+
+    const blockedBy = matched.filter((gate) =>
+      anyPatternMatches(gate.blockedPaths, path),
+    );
+    if (blockedBy.length > 0) {
+      errors.push(
+        `${path} is blocked by active initiative/workstream ${blockedBy
+          .map((gate) => gate.id)
+          .join(", ")} blocked_paths.`,
+      );
+    }
   }
 }
 

@@ -85,6 +85,14 @@ Use $white-tower dispatch max_parallel=2
 
 The agent should read the project state, run available gates, find runnable tasks, choose the available executor, and start worker agents when the environment supports multi-agent execution. If no multi-agent tool is available, it falls back to sequential execution.
 
+`active` means a runnable implementation lane, not every planned or reviewed
+initiative. White Tower may prepare several `planned` / `review` initiatives in
+parallel, but source-code workers are dispatched only from active task DAGs whose
+dependencies are satisfied. After each task finishes, White Tower should
+recalculate the DAG and dispatch every non-conflicting runnable task up to
+`max_parallel`, based on `depends_on`, `can_parallel`, `allowed_paths`,
+`blocked_paths`, `conflict_risk`, and `contract_changes`.
+
 For OMP:
 
 ```bash

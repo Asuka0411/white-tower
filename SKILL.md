@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.6-dev
+version: 0.12.7-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.6-dev
+version: 0.12.7-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -359,7 +359,10 @@ execution_lock:
    - 如果当前不允许源码实现且没有 initiative，自动补齐当前阶段缺失文档和 TODO。
    - 面向用户的回复必须给“白塔将自动执行的下一步”，不要只输出 blocked_actions、内部状态或让用户手动切换阶段。
 3. **选择 runnable tasks**：
-   - `status=planned`。
+   - 只从可运行实现通道里选任务：`docs/initiatives/active/**/04-任务拆解.md` 或 legacy `docs/workstreams/active/**`。
+   - `active` 表示“当前允许实施的执行通道”，不是“所有已经规划好的需求”。不要为了显示并发，把所有 `planned` / `review` initiative 都移动到 `active`。
+   - `planned` / `review` initiative 可以继续由白塔并行做需求级 UI/UX、技术方案、任务拆解、引用图片和格式修复；但它们不是源码实现 worker 的输入。
+   - 任务自身 `status=planned` 或等价未开始状态。
    - `depends_on` 全部完成或为 `none`。
    - `source_plan_sections` 能在 `03-技术方案.md` 中找到。
    - `allowed_paths`、`blocked_paths`、`verification`、`merge_target` 均已声明。
@@ -375,6 +378,8 @@ execution_lock:
    - worker 不得修改 `blocked_paths`，不得回滚其他 worker 的改动。
    - worker 完成后必须运行该任务的 `verification`。
    - 每个任务完成后先做 spec review，再做 quality review。
+   - 每个任务完成并写回状态后，白塔必须重新计算 task DAG：解除依赖后，把所有 `depends_on` 已满足、`can_parallel=true`、`allowed_paths` 不冲突、`blocked_paths` 不相互踩踏、`conflict_risk != high`、`contract_changes=none` 的任务继续派发，直到达到 `max_parallel` 或没有 runnable tasks。
+   - 如果当前只有一个任务满足 runnable 条件，就执行这一个；不要要求用户解释为什么其他 initiative 仍在 `planned` 或 `review`。
    - 最后由主控整合结果，更新 `04-任务拆解.md`、`05-验收记录.md` 和必要全局文档。
 
 用户引导规则：
@@ -383,6 +388,7 @@ execution_lock:
 - 不要让用户手动编辑 `current_stage`、`gate_mode`、`status` 或 `lifecycle_state`。
 - 不要把多条候选命令丢给用户选择。
 - 如果不能编码，直接说明白塔会先做哪个前置动作，例如“我先自动审查 planned 需求单，把可进入 review 的技术方案推进，并找出首个可 active 的 initiative。”
+- 如果某个 active/review 任务不涉及产品范围、全局 UI/UX、重大架构、破坏性迁移、外部服务、付费能力或删除用户改动，白塔不要要求用户手动批准状态推进。
 - 只有涉及产品范围、设计取舍、重大架构选择、破坏性删除或外部服务时，才向用户提问。
 
 派发 worker 时使用这种上下文结构：
@@ -647,7 +653,8 @@ hotfix_018_login_crash
 - 项目级自检由 `docs/white-tower/status.md` 管理，决定白塔自己能不能进入开发。
 - 需求级边界由 `docs/workstreams/<status>/<workstream-id>.md` 管理，决定白塔处理某个需求时能改哪些路径。
 - 阶段 1-3 或 `gate_mode=source-locked` 时，即使有多个 workstream，白塔自己也只能做文档、架构、TODO、架构决策、界面设计和自检准备。
-- 阶段 4 或 `gate_mode=development` 后，白塔自己的源码改动必须命中至少一个 `docs/workstreams/active/` 下的 `status=active` workstream 的 `allowed_paths`。
+- 阶段 4 或 `gate_mode=development` 后，白塔自己的源码改动必须命中至少一个 active gate 的 `allowed_paths`：新版项目优先读取 `docs/initiatives/active/**/04-任务拆解.md`，legacy 项目兼容读取 `docs/workstreams/active/**` 或 `status=active` workstream。
+- 门禁脚本必须读取 `docs/initiatives/active/**/04-任务拆解.md` 中的 `allowed_paths` 和 `blocked_paths`；只检查旧 `docs/workstreams/active` 会导致新版 initiative 项目误报“没有 active workstream”。
 - 如果多个 workstream 需要改共享契约、数据模型、架构边界，先补 architecture-decision 或在 workstream 中声明依赖。
 
 workstream 必须按状态目录组织：
