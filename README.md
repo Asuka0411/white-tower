@@ -91,6 +91,23 @@ For OMP:
 omp --cwd /path/to/project --skills=white-tower "Use $white-tower dispatch max_parallel=2"
 ```
 
+### Review and advance initiatives
+
+Do not manually open every initiative just to update checklist or plan status.
+Ask White Tower to do the deterministic scan and update:
+
+```text
+Use $white-tower 审查并推进需求单
+```
+
+White Tower should scan `docs/initiatives/planned/`,
+`docs/initiatives/active/`, `TODO.md`, and the available check scripts. It can
+automatically fix mechanical issues, advance `plan_status=draft` to
+`plan_status=review` when the technical plan is complete enough for review,
+update indexes, and rewrite TODO items. It should ask the user only for product
+scope, UX direction, high-impact architecture choices, destructive changes, or
+new external services/dependencies.
+
 ### Bootstrap a project with gate templates
 
 Inside the target project:

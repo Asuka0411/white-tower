@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.2-dev
+version: 0.12.3-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.2-dev
+version: 0.12.3-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -56,6 +56,14 @@ Use $white-tower dispatch max_parallel=2
 
 这条指令必须自动完成环境判断、任务选择和执行器选择。如果白塔自检通过且存在 runnable tasks，不要只输出方案，要开始派发任务。
 
+批量审查并推进需求单时使用：
+
+```text
+Use $white-tower 审查并推进需求单
+```
+
+这条指令不是让用户逐个打开文件手动改状态。白塔必须自动扫描 `docs/initiatives/planned/`、`docs/initiatives/active/`、`TODO.md` 和检查脚本，能确定通过的自动更新状态、TODO 和索引；只有产品判断、设计取舍、技术冲突或破坏性变更不确定时才向用户列出问题。
+
 常见请求和处理方式：
 
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 白塔自检 / 风险”输出。
@@ -63,6 +71,7 @@ Use $white-tower dispatch max_parallel=2
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
 - “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成交付事项包，使用 `--create-initiatives`；新版目录固定为 `docs/initiatives/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
+- “审查并推进需求单 / 推进需求单 / 批量推进技术方案”：执行 initiative 自动审查推进流程；不要要求用户逐个打开 `03-技术方案.md` 手动从 `draft` 改到 `review`。
 - “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
 - “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
 - “提交代码”：白塔自己先运行可用自检、仓库既有检查和 `git diff --check`；不要默认要求项目安装 pre-commit、pre-push 或 CI 阻止其他人。
@@ -186,6 +195,38 @@ docs/initiatives/done/000_uiux_interaction_motion/
 7. **Report**：只总结已经写入仓库的状态；最终报告不能作为恢复依据。
 
 如果循环中发现阶段不满足，白塔停止自己的越级任务，改为补齐必要产物。
+
+### Initiative 自动审查推进
+
+当用户要求“审查并推进需求单”“推进需求单”“批量推进技术方案”或 TODO 指向 `docs/initiatives/planned/` 时，白塔必须把它当作自动化治理任务，而不是人工待办清单。
+
+执行顺序：
+
+1. 读取 `TODO.md`、`docs/initiatives/README.md`、`docs/white-tower/status.md`、所有 `docs/initiatives/<planned|active>/*/00-meta.md`、`01-需求文档.md`、`02-界面设计.md`、`03-技术方案.md`、`04-任务拆解.md`。
+2. 运行存在的确定性检查：`node scripts/check-stage-gate.mjs`、`node scripts/check-initiative-package.mjs`，以及必要的 Markdown 链接 / 图片存在性检查。
+3. 对每个 initiative 自动判断：
+   - 必需文件是否存在。
+   - `00-meta.md` 的 `status` 是否和外部目录一致，`lifecycle_state` 是否合理。
+   - `02-界面设计.md` 是否有可点击引用和内嵌预览图，缺失时能从仓库稳定路径补齐则自动补齐。
+   - `03-技术方案.md` 是否包含必填章节、UI 与数据分离约束、影响范围、数据结构、状态流、错误处理、测试策略、兼容和回滚。
+   - `plan_status=draft` 是否已经具备进入 `review` 的客观条件。
+   - `04-任务拆解.md` 是否声明 `source_plan_sections`、交付物、验收切片、允许路径、阻塞路径、验证命令、依赖和目标分支。
+4. 能确定修复的格式、链接、状态同步、索引、TODO 勾选和 `lifecycle_state` 变更，白塔直接修改仓库文件。
+5. 只有以下情况需要用户判断：
+   - 产品范围或优先级冲突。
+   - UI/UX 方向需要取舍。
+   - 技术方案存在多种高影响架构选择。
+   - 会删除、重写或回滚用户已有改动。
+   - 需要新增重大依赖、账号、服务端、云同步、公网访问或付费服务。
+6. 完成后重新运行检查，更新 `TODO.md`、`docs/initiatives/README.md` 和相关 `00-meta.md` / `04-任务拆解.md`。
+
+自动状态推进规则：
+
+- `plan_status=draft` 且必填章节完整、无明显占位、能约束实现、未解决问题不阻塞评审时，白塔可改为 `plan_status=review`。
+- `plan_status=review` 只有在用户或明确的评审记录批准后才能改为 `approved`。
+- 外部目录只使用 `planned/active/done/archived/`。准备、评审、暂停、阻塞等细状态写入 `lifecycle_state`，不要新建细状态目录。
+- 从 `planned/` 移到 `active/` 前，必须已有可执行任务、允许路径、阻塞路径、验证命令和恢复 checkpoint 约定。
+- 从 `active/` 移到 `done/` 前，必须有验收记录、验证结果和全局产品文档反写。
 
 ### Checkpoint-first 恢复模型
 
