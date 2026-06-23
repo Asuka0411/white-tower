@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.11-dev
+version: 0.12.12-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.11-dev
+version: 0.12.12-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -151,6 +151,61 @@ pending_review:
 - 用户明确确认前，不得把对应 initiative 从 `planned` 推到 `active`，不得把 `lifecycle_state` 推进为 `ready` / `active`，不得继续依赖该 UI/UX 的技术方案批准或源码 dispatch。
 - 如果对话中断、用户未确认、token 限流、IDE 崩溃或电脑断电，下次 `继续`、`实施计划` 或 `dispatch` 必须先读取 UI/UX review 状态；只要存在 `pending_review`，就重新发送对应图片并等待确认。
 - 用户提出修改意见时，白塔更新草案和图片，保持 `pending_review`；只有用户明确说确认、通过、按这个方向继续等同义表达时，才标记 `approved` 并继续推进。
+
+### UI/UX 绘制质量闸
+
+UI/UX 草案不是展示设计能力的海报，而是给最终用户使用的产品界面。白塔在生成、修改或发送任何 UI/UX 图片前，必须先通过质量闸；不能只满足“有图、发图、pending_review”。
+
+绘制每个页面前，先在 initiative run record、`docs/uiux/REVIEW_STATUS.md` 或等价设计记录中写入简短 design brief：
+
+```yaml
+target_user: <最终用户>
+page_job: <这个页面帮用户完成的一件事>
+primary_action: <唯一主行动>
+secondary_actions:
+  - <最多 0-2 个辅助行动>
+information_priority:
+  - <最先让用户看到的信息>
+forbidden_elements:
+  - <本页不该出现的控件、区块、解释或状态>
+product_copy_rules:
+  - <面向最终用户的文案语气和禁用词>
+```
+
+单任务页面默认只允许一个主行动。例如“选择一个目录作为图库”这类页面，默认不加侧边栏、仪表盘、多组状态面板、多入口按钮、重复说明、实现流程解释或为了显得完整而添加的占位功能。除非 PRD 明确要求，页面只服务当前 `page_job`。
+
+界面可见文案必须是最终用户会看到的产品文案：
+
+- 不写给 Asuka 的说明。
+- 不写给 agent / designer / developer 的解释。
+- 不写“这个页面用于”“我做了”“设计目标是”这类设计说明。
+- 不把实现细节、阶段状态、白塔流程、review 状态或需求分析塞进产品 UI。
+- 不在多个区域重复同一件事；同一信息只在最合适的位置出现一次。
+
+反馈触发规则：
+
+- 用户说“复杂”“重复”“凌乱”“不知道干什么”“只做一件事”“我现在理论上不就一个事情可以做吗”等同义反馈时，下一版必须做结构性简化：删区块、删辅助动作、删重复文案、重新排列层级，而不是只改颜色、圆角、阴影或几个字。
+- 用户说“有什么区别”“看不出区别”等同义反馈时，下一版必须产生肉眼可见的布局或信息架构变化，并在 run record 记录 changed_regions；不能发送和上一张几乎相同的图片。
+- 用户指出“这句话是解释给我看的还是用户”或角色错位时，必须先重写所有可见文案，确保每一句都面向最终用户，再重新截图。
+- 用户指出“没对齐”“这里很奇怪”等视觉问题时，必须检查对齐、间距、图标与文字基线、视觉重心和响应式尺寸；不能只口头解释。
+- 反馈原文必须原样写入 run record，随后记录 interpretation、exact_changes、changed_regions 和 regenerated_image。
+
+发送图片前必须自检：
+
+```yaml
+uiux_quality_check:
+  primary_action_visible_within_3_seconds: true
+  exactly_one_dominant_action_for_single_job_page: true
+  no_duplicate_message_blocks: true
+  all_visible_copy_is_end_user_product_copy: true
+  alignment_spacing_and_hierarchy_checked: true
+  revision_has_material_visual_delta: true
+  screenshot_regenerated_after_latest_change: true
+```
+
+如果任一项不是 `true`，白塔先继续修改，不把图片发给用户 review。修订后不能声称“已解决”直到重新生成图片并完成自检。
+
+向用户发送 UI/UX 图片时，回复只需要给图片、页面名和一句确认问题。不要用长篇文字解释设计为什么好；设计质量由图片本身接受 review。状态保持 `pending_review`，直到用户明确确认。
 
 ### 新项目 Bootstrap
 

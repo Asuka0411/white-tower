@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added a UI/UX drawing quality gate for page-job briefs, end-user copy, structural simplification, material revision deltas, and screenshot self-review before user confirmation.
 - Simplified initiative package folders to `planned/`, `active/`, `done/`, and `archived/`; finer states now live in `00-meta.md` as `lifecycle_state`.
 - Renamed the durable package root from `docs/requirements/` to `docs/initiatives/`; legacy `docs/requirements/` paths are migrated automatically.
 - Removed year/quarter initiative-package folders and the old `--requirements-period` workflow.

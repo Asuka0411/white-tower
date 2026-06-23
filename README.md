@@ -105,6 +105,15 @@ for explicit user confirmation. UI/UX drafts can be generated in parallel, but
 initiative state must not advance past the UI/UX gate until each relevant image
 is approved.
 
+UI/UX generation has a drawing quality gate, not only a confirmation gate. Before
+rendering a screen, White Tower records the target user, page job, primary action,
+secondary actions, information priority, forbidden elements, and user-facing copy
+rules. Single-action pages default to one dominant action and no sidebar,
+dashboard, repeated explanation, or implementation/status copy unless the PRD
+requires it. If critique says the UI is cluttered, repetitive, role-confused, or
+visually unchanged, the next revision must make a structural change, regenerate
+the screenshot, record the changed regions, and keep the item in `pending_review`.
+
 `continue`, `dispatch`, and end-to-end planning commands should run as an
 autopilot loop. After one preparatory action completes, White Tower should
 re-read project state and immediately continue the next allowed action. It
