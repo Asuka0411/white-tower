@@ -1,6 +1,6 @@
 # 需求元信息
 
-requirement_id: 012
+initiative_id: 012
 title: <需求标题>
 status: planned
 lifecycle_state: planned

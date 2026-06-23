@@ -1,12 +1,12 @@
 # White Tower Task Dispatch Prompt
 
-Use this prompt inside a project that has White Tower workstreams or requirement packages.
+Use this prompt inside a project that has White Tower workstreams or initiative packages.
 
 ```text
 Use $white-tower dispatch max_parallel=2
 
 自动完成：
-1. 读取 docs/white-tower/status.md、stage-gates、TODO、workstreams、需求包 03/04。
+1. 读取 docs/white-tower/status.md、stage-gates、TODO、workstreams、initiatives 03/04。
 2. 运行可用门禁脚本。
 3. 判断当前是否允许编码。
 4. 找出 runnable tasks。

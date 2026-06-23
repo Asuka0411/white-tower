@@ -26,12 +26,12 @@
 │   ├── TODO.md                      # 项目 TODO 模板
 │   ├── docs/product/                # 总 PRD / UI / TECH 模板
 │   ├── docs/white-tower/status.md   # 当前阶段状态模板
-│   ├── docs/requirements/template/  # 单需求包模板
+│   ├── docs/initiatives/template/   # 单 initiative 模板
 │   ├── docs/white-tower/stage-gates.md # 阶段自检定义模板
 │   ├── docs/workstreams/            # 工作流模板和状态目录
 │   ├── prompts/task-dispatch.md      # 自动调度多 agent 执行提示词
 │   ├── scripts/check-stage-gate.mjs # 白塔自检脚本模板
-│   └── scripts/check-requirement-package.mjs # 需求包检查脚本模板
+│   └── scripts/check-initiative-package.mjs # initiative 检查脚本模板
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
 ├── SECURITY.md
@@ -77,7 +77,7 @@ See `docs/adapters.md` for target paths and environment overrides.
 
 ### Dispatch runnable tasks
 
-Inside a project that already has White Tower status, workstreams, and requirement-package tasks:
+Inside a project that already has White Tower status, workstreams, and initiative-package tasks:
 
 ```text
 Use $white-tower dispatch max_parallel=2
@@ -123,42 +123,44 @@ node scripts/migrate-white-tower.mjs --write
 The migration script creates workstream state directories, moves flat workstream
 files into the directory matching their `status`, updates Markdown path
 references, and warns when a legacy PRD/workstream layout has not been converted
-into requirement packages yet.
+into initiative packages yet.
 
-Generate compatibility requirement packages when an older project should move to
-the current requirement-package layout:
+Generate compatibility initiative packages when an older project should move to
+the current initiative-package layout:
 
 ```bash
-node scripts/migrate-white-tower.mjs --create-requirements
-node scripts/migrate-white-tower.mjs --create-requirements --write
+node scripts/migrate-white-tower.mjs --create-initiatives
+node scripts/migrate-white-tower.mjs --create-initiatives --write
 ```
 
-Requirement packages use a small set of external folders. Detailed lifecycle
+The legacy `--create-requirements` flag is still accepted as an alias.
+
+Initiative packages use a small set of external folders. Detailed lifecycle
 states such as `preparing`, `ready`, `review`, `paused`, and `blocked` live in
 `00-meta.md` as `lifecycle_state`:
 
 ```text
-docs/requirements/planned/
-docs/requirements/active/
-docs/requirements/done/
-docs/requirements/archived/
+docs/initiatives/planned/
+docs/initiatives/active/
+docs/initiatives/done/
+docs/initiatives/archived/
 ```
 
 If an older migration created perioded packages such as
-`docs/requirements/2026/Q3/in-progress/002_app_shell_theme/`, the script moves
+`docs/initiatives/2026/Q3/in-progress/002_app_shell_theme/`, the script moves
 them into the flat status layout and updates Markdown references.
 
 This mode creates packages such as:
 
 ```text
-docs/requirements/active/001_library_bootstrap/
-docs/requirements/planned/002_app_shell_theme/
-docs/requirements/done/000_uiux_interaction_motion/
+docs/initiatives/active/001_library_bootstrap/
+docs/initiatives/planned/002_app_shell_theme/
+docs/initiatives/done/000_uiux_interaction_motion/
 ```
 
 Generated packages keep `human_review_required: true` and reference legacy PRD,
 UI, technical-plan, and workstream files. They are compatibility skeletons, not a
-claim that the old documents have been fully rewritten into precise requirement
+claim that the old documents have been fully rewritten into precise initiative
 packages.
 
 ## Workflow
@@ -202,12 +204,12 @@ On token limits, IDE crashes, power loss, worker failure, or stale locks, the
 next run must first reconstruct state from the latest checkpoint and git diff,
 then either continue, verify current WIP, mark blocked, or ask for human input.
 
-## Requirement Package Model
+## Initiative Package Model
 
-For ongoing product work, one requirement should keep its PRD, interface design, technical plan, task breakdown, acceptance record, and release handoff together:
+For ongoing product work, one initiative should keep its PRD, interface design, technical plan, task breakdown, acceptance record, and release handoff together:
 
 ```text
-docs/requirements/active/012_import_folder/
+docs/initiatives/active/012_import_folder/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -226,7 +228,7 @@ status: active
 lifecycle_state: review
 ```
 
-Global product facts stay separate and must be updated when a requirement is completed:
+Global product facts stay separate and must be updated when an initiative is completed:
 
 ```text
 docs/product/PRD.md
@@ -244,11 +246,11 @@ release_2026q3_001
 hotfix_018_login_crash
 ```
 
-The requirement package checker validates package structure, technical plan readiness, task traceability, and branch naming:
+The initiative package checker validates package structure, technical plan readiness, task traceability, and branch naming:
 
 ```bash
-node templates/scripts/check-requirement-package.mjs examples/requirement-package-demo --branch=feat_012_import_folder
-node examples/requirement-package-demo/scripts/run-edge-cases.mjs
+node templates/scripts/check-initiative-package.mjs examples/initiative-package-demo --branch=feat_012_import_folder
+node examples/initiative-package-demo/scripts/run-edge-cases.mjs
 ```
 
 It checks that each `03-技术方案.md` declares `plan_status` and `migration_level`, fills required technical sections, records layer-boundary constraints such as UI/data separation, resolves open questions before approval, and links breaking migrations to ADRs. It also checks that each task in `04-任务拆解.md` references technical plan sections and declares deliverable, acceptance slice, contract changes, review focus, allowed paths, and verification commands.

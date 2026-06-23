@@ -1,9 +1,9 @@
 ---
 name: white-tower
-version: 0.11.0-dev
+version: 0.12.0-dev
 codename: white-tower
 updated_at: 2026-06-23
-description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, requirement packages, Gitflow branch checks, or check scripts.
+description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
 ---
 
 # 白塔协议
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.11.0-dev
+version: 0.12.0-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -61,10 +61,10 @@ Use $white-tower dispatch max_parallel=2
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 白塔自检 / 风险”输出。
 - “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
-- “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成需求包，使用 `--create-requirements`；新版需求包目录固定为 `docs/requirements/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
+- “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成交付事项包，使用 `--create-initiatives`；新版目录固定为 `docs/initiatives/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
 - “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
-- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和需求包任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
+- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
 - “提交代码”：白塔自己先运行可用自检、仓库既有检查和 `git diff --check`；不要默认要求项目安装 pre-commit、pre-push 或 CI 阻止其他人。
 - “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/white-tower/status.md`、`TODO.md` 和必要 architecture-decision。
 
@@ -119,40 +119,42 @@ cp /path/to/white-tower/templates/scripts/migrate-white-tower.mjs scripts/migrat
 node scripts/migrate-white-tower.mjs
 ```
 
-如果用户明确要求从旧 workstream 生成兼容需求包，先 dry-run：
+如果用户明确要求从旧 workstream 生成兼容交付事项包，先 dry-run：
 
 ```bash
-node scripts/migrate-white-tower.mjs --create-requirements
+node scripts/migrate-white-tower.mjs --create-initiatives
 ```
+
+旧参数 `--create-requirements` 仍作为兼容别名接受，但新版文档和输出统一使用 `initiatives`。
 
 确认输出只包含安全迁移后再应用：
 
 ```bash
-node scripts/migrate-white-tower.mjs --create-requirements --write
+node scripts/migrate-white-tower.mjs --create-initiatives --write
 ```
 
-新版需求包只使用四个外部状态目录：
+新版 initiative 只使用四个外部状态目录：
 
 ```text
-docs/requirements/planned/
-docs/requirements/active/
-docs/requirements/done/
-docs/requirements/archived/
+docs/initiatives/planned/
+docs/initiatives/active/
+docs/initiatives/done/
+docs/initiatives/archived/
 ```
 
 `00-meta.md` 中的 `status` 必须和外部目录一致。更细的识别状态写入 `lifecycle_state`，允许值为 `planned`、`preparing`、`ready`、`active`、`review`、`paused`、`blocked`、`done`、`archived`。例如 `review`、`paused`、`blocked` 都仍放在 `active/` 目录下。
 
-如果旧迁移已经生成了季度目录，例如 `docs/requirements/2026/Q3/in-progress/002_app_shell_theme/`，新版脚本必须把它们迁到扁平目录，例如 `docs/requirements/active/002_app_shell_theme/`，并更新 Markdown 引用。
+如果旧迁移已经生成了季度目录，例如 `docs/initiatives/2026/Q3/in-progress/002_app_shell_theme/`，新版脚本必须把它们迁到扁平目录，例如 `docs/initiatives/active/002_app_shell_theme/`，并更新 Markdown 引用。
 
-该模式会从旧 workstream 生成兼容需求包，例如：
+该模式会从旧 workstream 生成兼容交付事项包，例如：
 
 ```text
-docs/requirements/active/001_library_bootstrap/
-docs/requirements/planned/002_app_shell_theme/
-docs/requirements/done/000_uiux_interaction_motion/
+docs/initiatives/active/001_library_bootstrap/
+docs/initiatives/planned/002_app_shell_theme/
+docs/initiatives/done/000_uiux_interaction_motion/
 ```
 
-生成的需求包必须标记 `human_review_required: true`，并把旧 PRD、UI、技术方案和 workstream 当作来源引用。不要声称它们已经完成精细需求重写；只能说这是兼容迁移后的需求包骨架。
+生成的交付事项包必须标记 `human_review_required: true`，并把旧 PRD、UI、技术方案和 workstream 当作来源引用。不要声称它们已经完成精细重写；只能说这是兼容迁移后的 initiative 骨架。
 
 自动迁移只处理确定安全的结构变更：
 
@@ -160,16 +162,16 @@ docs/requirements/done/000_uiux_interaction_motion/
 - 将顶层 flat workstream 按 `status` 移到对应目录。
 - 将旧状态别名映射为新版目录：`planned -> draft`、`in-progress -> active`、`completed -> done`。
 - 自动更新 Markdown 中的旧 workstream 路径引用。
-- 显式传入 `--create-requirements` 时，从旧 workstream 生成 `docs/requirements/<planned|active|done|archived>/<id_slug>/` 兼容需求包；旧的年份、季度和细状态目录会被折叠到新版扁平目录，细状态写入 `lifecycle_state`。
+- 显式传入 `--create-initiatives` 时，从旧 workstream 生成 `docs/initiatives/<planned|active|done|archived>/<id_slug>/` 兼容交付事项包；旧的年份、季度和细状态目录会被折叠到新版扁平目录，细状态写入 `lifecycle_state`。
 
 不能安全自动生成的信息只进入兼容模式或输出 warning：
 
 - 缺少 `status` 的 workstream。
 - 目标路径已存在的 workstream。
-- 只有 `docs/prd/` + `docs/workstreams/`，但没有显式传入 `--create-requirements` 的旧项目。
-- 无法从旧 PRD 自动推断最终准确的 `00-meta.md` 到 `06-发布交接.md` 内容；生成的需求包只能作为待人工确认的兼容骨架。
+- 只有 `docs/prd/` + `docs/workstreams/`，但没有显式传入 `--create-initiatives` 的旧项目。
+- 无法从旧 PRD 自动推断最终准确的 `00-meta.md` 到 `06-发布交接.md` 内容；生成的 initiative 只能作为待人工确认的兼容骨架。
 
-兼容模式下，允许继续读取旧 `docs/prd/`、`docs/uiux/`、`docs/technical-plan.md`、`docs/workstreams/**` 作为上游依据；但报告时必须明确“这是旧结构兼容读取”，不能声称需求已经完成需求包迁移。
+兼容模式下，允许继续读取旧 `docs/prd/`、`docs/uiux/`、`docs/technical-plan.md`、`docs/workstreams/**` 作为上游依据；但报告时必须明确“这是旧结构兼容读取”，不能声称需求已经完成 initiative 迁移。
 
 ### 自动推进循环
 
@@ -273,12 +275,12 @@ execution_lock:
    - `docs/white-tower/stage-gates.md`
    - `TODO.md`
    - `docs/workstreams/**`
-   - `docs/requirements/**/00-meta.md`
-   - `docs/requirements/**/03-技术方案.md`
-   - `docs/requirements/**/04-任务拆解.md`
+   - `docs/initiatives/**/00-meta.md`
+   - `docs/initiatives/**/03-技术方案.md`
+   - `docs/initiatives/**/04-任务拆解.md`
 2. **白塔自检**：
    - 如果存在 `scripts/check-stage-gate.mjs`，白塔先运行它作为自检。
-   - 如果存在 `scripts/check-requirement-package.mjs`，先运行。
+   - 如果存在 `scripts/check-initiative-package.mjs`，先运行。
    - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，白塔才执行编码任务。
 3. **选择 runnable tasks**：
    - `status=planned`。
@@ -305,7 +307,7 @@ execution_lock:
 You are implementing one White Tower task. You are not alone in this repo.
 Do not revert or overwrite changes made by other workers.
 
-Requirement package: <path>
+Initiative package: <path>
 Task id: <TASK-ID>
 Branch: <branch>
 Depends on: <depends_on>
@@ -485,16 +487,16 @@ node scripts/check-stage-gate.mjs --staged
 - `plan_status=approved` 时，`未解决问题` 必须为 `none`。
 - `migration_level=breaking` 时，必须新增或更新 ADR。
 - `04-任务拆解.md` 的每个任务必须声明 `source_plan_sections`、`deliverable`、`acceptance_slice`、`contract_changes` 和 `review_focus`。
-- `source_plan_sections` 必须能在同需求包的 `03-技术方案.md` 中找到对应章节。
+- `source_plan_sections` 必须能在同一 initiative 的 `03-技术方案.md` 中找到对应章节。
 
-### 需求包模型
+### Initiative 模型
 
-同一个需求的产品、界面、技术、任务、验收和发布交接必须放在同一个需求包里，避免 PRD、界面设计、技术方案分散后失去关联。
+同一个交付事项的产品、界面、技术、任务、验收和发布交接必须放在同一个 initiative 包里，避免 PRD、界面设计、技术方案分散后失去关联。
 
 推荐结构：
 
 ```text
-docs/requirements/active/012_import_folder/
+docs/initiatives/active/012_import_folder/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -512,7 +514,7 @@ docs/requirements/active/012_import_folder/
 - `docs/product/TECH.md`：当前技术总览、模块边界、质量命令。
 - `docs/adr/`：全局架构决策记录。
 
-需求完成后不能只移动到 `done/`，还必须反写相关全局文档。如果需求被放弃或过期，移动到 `archived/`，写清归档原因，不进入全局当前事实。
+initiative 完成后不能只移动到 `done/`，还必须反写相关全局文档。如果 initiative 被放弃或过期，移动到 `archived/`，写清归档原因，不进入全局当前事实。
 
 ### Gitflow 分支规范
 
@@ -536,7 +538,7 @@ hotfix_018_login_crash
 - 统一使用下划线 `_`。
 - 不使用短横线 `-`。
 - `type` 只允许 `feat`、`fix`、`hotfix`、`release`。
-- 需求开发分支的 `id` 必须对应需求包 ID。
+- 开发分支的 `id` 必须对应 initiative ID。
 - 每个任务在 `04-任务拆解.md` 中声明目标分支、前置依赖、允许路径、验证命令和合并目标。
 
 ### 并行需求

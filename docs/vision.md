@@ -7,7 +7,7 @@
 ```text
 需求讨论
  -> 需求定稿
- -> 需求包落档
+ -> initiative 落档
  -> 界面设计
  -> 原型 / 高保真 / 交互 / 动效
  -> 技术方案
@@ -20,7 +20,7 @@
 
 ## 文档组织原则
 
-同一个需求的产品、界面、技术、任务和验收文档必须放在同一个需求包内，避免 PRD、UI、技术方案分散在不同目录后失去关联。
+同一个交付事项的产品、界面、技术、任务和验收文档必须放在同一个 initiative 包内，避免 PRD、UI、技术方案分散在不同目录后失去关联。
 
 白塔自己的机器控制面必须放在独立目录，避免和老项目或其他工具已有文件撞车：
 
@@ -52,10 +52,10 @@ docs/workstreams/
 
 `status` 必须和所在目录一致。完成后移入 `done/`，归档后移入 `archived/` 并写明原因。
 
-需求包只按少数外部状态组织，不再按年份或季度分层：
+initiative 只按少数外部状态组织，不再按年份或季度分层：
 
 ```text
-docs/requirements/
+docs/initiatives/
 ├── planned/
 ├── active/
 ├── done/
@@ -64,10 +64,10 @@ docs/requirements/
 
 更细的识别状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。
 
-单个需求包结构：
+单个 initiative 结构：
 
 ```text
-docs/requirements/active/012_import_folder/
+docs/initiatives/active/012_import_folder/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -97,13 +97,13 @@ docs/requirements/active/012_import_folder/
 
 如果仍有核心歧义，不能进入界面设计。
 
-## 需求包阶段
+## Initiative 阶段
 
-需求定稿后，创建需求包。需求包必须有稳定 ID，例如 `012`，并在所有文档、任务、分支、提交记录中保持一致。
+需求定稿后，创建 initiative。initiative 必须有稳定 ID，例如 `012`，并在所有文档、任务、分支、提交记录中保持一致。
 
 `00-meta.md` 必须记录：
 
-- requirement_id
+- initiative_id
 - title
 - status
 - owner
@@ -116,7 +116,7 @@ docs/requirements/active/012_import_folder/
 
 ## 界面设计阶段
 
-界面设计写在需求包内的 `02-界面设计.md`，与该需求的 PRD、技术方案和任务拆解放在一起。
+界面设计写在 initiative 内的 `02-界面设计.md`，与该需求的 PRD、技术方案和任务拆解放在一起。
 
 必须覆盖：
 
@@ -137,7 +137,7 @@ docs/requirements/active/012_import_folder/
 
 ## 技术方案阶段
 
-技术方案写在需求包内的 `03-技术方案.md`，不要和其他需求混在一个大文件里。
+技术方案写在 initiative 内的 `03-技术方案.md`，不要和其他需求混在一个大文件里。
 
 必须覆盖：
 
@@ -219,7 +219,7 @@ fix_012_scan_error
 - 统一使用下划线 `_`。
 - 不使用短横线 `-`。
 - `type` 仅允许 `feat`、`fix`、`hotfix`、`release`。
-- `id` 必须对应需求包 ID 或发布编号。
+- `id` 必须对应 initiative ID 或发布编号。
 - `short_name` 应简短表达任务内容。
 
 ## 多 agent 并行开发
@@ -286,5 +286,5 @@ CLI 负责确定性检查，不负责替代用户做产品判断。
 
 ```bash
 node templates/scripts/check-stage-gate.mjs
-node templates/scripts/check-requirement-package.mjs <project> --branch=feat_012_import_folder
+node templates/scripts/check-initiative-package.mjs <project> --branch=feat_012_import_folder
 ```

@@ -1,7 +1,7 @@
 interface:
   display_name: "白塔协议"
   short_description: "AI 产品交付 SOP 与阶段门禁"
-  default_prompt: "Use $white-tower to bootstrap or audit this project, connect requirements, PRD, interface design, technical plans, requirement packages, task DAGs, Gitflow branches, and gate checks, then propose the next safe action."
+  default_prompt: "Use $white-tower to bootstrap or audit this project, connect requirements, PRD, interface design, technical plans, initiative packages, task DAGs, Gitflow branches, and gate checks, then propose the next safe action."
 
 policy:
   allow_implicit_invocation: true

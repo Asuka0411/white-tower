@@ -15,7 +15,10 @@ import path from "node:path";
 const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const root = positionalArgs[0] ? path.resolve(positionalArgs[0]) : process.cwd();
 const write = process.argv.includes("--write");
-const createRequirements = process.argv.includes("--create-requirements");
+const createInitiatives = process.argv.includes("--create-initiatives")
+  || process.argv.includes("--create-requirements");
+const initiativeRoot = "docs/initiatives";
+const legacyRequirementRoot = "docs/requirements";
 
 const workstreamStates = new Set(["draft", "ready", "active", "blocked", "done", "archived"]);
 const statusAliases = new Map([
@@ -221,15 +224,14 @@ function requirementFolderStatusForLifecycle(lifecycleState) {
   return "";
 }
 
-function listRequirementPackageDirs() {
-  const absoluteDir = relative("docs", "requirements");
-  if (!existsSync(absoluteDir)) {
-    return [];
-  }
+function listInitiativePackageDirs() {
+  const roots = [initiativeRoot, legacyRequirementRoot]
+    .filter((packageRoot) => existsSync(relative(packageRoot)));
 
-  return listMarkdownFiles("docs/requirements")
-    .filter((file) => path.basename(file) === "00-meta.md")
-    .map((file) => toPosix(path.dirname(file)))
+  return roots
+    .flatMap((packageRoot) => listMarkdownFiles(packageRoot)
+      .filter((file) => path.basename(file) === "00-meta.md")
+      .map((file) => toPosix(path.dirname(file))))
     .sort((a, b) => b.length - a.length);
 }
 
@@ -256,20 +258,40 @@ function setFieldAfter(markdown, name, value, afterName) {
   return lines.join("\n");
 }
 
-function trackMaybeEmptyRequirementDirs(source) {
+function packageRootFor(source) {
+  if (source === legacyRequirementRoot || source.startsWith(`${legacyRequirementRoot}/`)) {
+    return legacyRequirementRoot;
+  }
+  return initiativeRoot;
+}
+
+function trackMaybeEmptyPackageDirs(source) {
+  const stopRoot = packageRootFor(source);
   let dir = path.dirname(source);
-  while (dir && dir !== "." && dir !== "docs/requirements") {
+  while (dir && dir !== "." && dir !== stopRoot) {
     maybeEmptyRequirementDirs.add(toPosix(dir));
     dir = path.dirname(dir);
   }
+  if (stopRoot === legacyRequirementRoot) {
+    maybeEmptyRequirementDirs.add(stopRoot);
+  }
+}
+
+function normalizeInitiativeIdField(markdown) {
+  const legacyId = field(markdown, "requirement_id");
+  const initiativeId = field(markdown, "initiative_id");
+  if (!legacyId || initiativeId) {
+    return markdown;
+  }
+  return markdown.replace(/^requirement_id:/m, "initiative_id:");
 }
 
 function migrateRequirementPackages() {
-  if (!exists("docs", "requirements")) {
+  if (!exists("docs", "initiatives") && !exists("docs", "requirements")) {
     return;
   }
 
-  for (const source of listRequirementPackageDirs()) {
+  for (const source of listInitiativePackageDirs()) {
     const packageName = path.basename(source);
     const meta = read(`${source}/00-meta.md`);
     const rawStatus = field(meta, "status");
@@ -279,11 +301,11 @@ function migrateRequirementPackages() {
       || normalizedRequirementFolderStatus(pathStatus);
 
     if (!targetStatus) {
-      warnings.push(`${source} has no recognized requirement status; leave in place for manual review.`);
+      warnings.push(`${source} has no recognized initiative status; leave in place for manual review.`);
       continue;
     }
 
-    const target = `docs/requirements/${targetStatus}/${packageName}`;
+    const target = `${initiativeRoot}/${targetStatus}/${packageName}`;
     const shouldMove = source !== target;
     if (shouldMove && exists(target)) {
       warnings.push(`${target} already exists; cannot auto-move ${source}.`);
@@ -295,7 +317,7 @@ function migrateRequirementPackages() {
       operations.push(`move ${source}/ -> ${target}/`);
       replacements.set(source, target);
       scheduledRequirementTargets.add(target);
-      trackMaybeEmptyRequirementDirs(source);
+      trackMaybeEmptyPackageDirs(source);
       finalDir = target;
       if (write) {
         mkdirSync(path.dirname(relative(target)), { recursive: true });
@@ -308,6 +330,16 @@ function migrateRequirementPackages() {
       if (write) {
         const metaPath = `${finalDir}/00-meta.md`;
         writeFile(metaPath, replaceField(read(metaPath), "status", targetStatus));
+      }
+    }
+
+    const idMetaPath = `${finalDir}/00-meta.md`;
+    const idMeta = read(idMetaPath);
+    const nextIdMeta = normalizeInitiativeIdField(idMeta);
+    if (idMeta !== nextIdMeta) {
+      operations.push(`rename requirement_id to initiative_id in ${finalDir}/00-meta.md`);
+      if (write) {
+        writeFile(idMetaPath, nextIdMeta);
       }
     }
 
@@ -394,12 +426,12 @@ function listOrFallback(items, fallback) {
 
 function generatedMeta({ id, title, requirementStatus, lifecycleState, branch, source }) {
   const archiveReason = requirementStatus === "archived"
-    ? "\n## 归档原因\n\n- Legacy workstream was archived before requirement-package migration.\n"
+    ? "\n## 归档原因\n\n- Legacy workstream was archived before initiative-package migration.\n"
     : "";
 
   return `# 需求元信息
 
-requirement_id: ${id}
+initiative_id: ${id}
 title: ${title}
 status: ${requirementStatus}
 lifecycle_state: ${lifecycleState}
@@ -427,7 +459,7 @@ function generatedRequirementDoc({ title, source, goal, acceptance }) {
 
 ## 背景
 
-This package was generated from legacy White Tower documents. Treat it as a compatibility package until a human reviews and rewrites the requirement details.
+This package was generated from legacy White Tower documents. Treat it as a compatibility package until a human reviews and rewrites the initiative details.
 
 ## 用户问题
 
@@ -524,7 +556,7 @@ migration_level: compatible
 
 ## 技术目标
 
-Preserve the implementation boundary described by \`${source}\` while migrating the project to requirement-package governance.
+Preserve the implementation boundary described by \`${source}\` while migrating the project to initiative-package governance.
 
 ## 当前代码风格
 
@@ -568,7 +600,7 @@ Run the verification commands inherited from the legacy workstream and add focus
 
 ## 兼容性和迁移
 
-This generated package is compatibility-only. It references legacy docs and should be rewritten into a complete requirement package over time.
+This generated package is compatibility-only. It references legacy docs and should be rewritten into a complete initiative package over time.
 
 ## 风险和回滚
 
@@ -611,7 +643,7 @@ source_plan_sections:
 - 影响范围
 - 测试策略
 deliverable: Review and refine the generated compatibility package before dispatching implementation.
-acceptance_slice: Requirement, UI, technical plan, task boundaries, and verification commands are confirmed against legacy docs.
+acceptance_slice: Initiative, UI, technical plan, task boundaries, and verification commands are confirmed against legacy docs.
 contract_changes: none
 review_focus: Check stale assumptions from legacy PRD, UI, technical-plan, and workstream files.
 
@@ -700,7 +732,7 @@ function generatedReleaseHandoff() {
 
 ## 回滚方案
 
-- Revert the implementation commit associated with this requirement package.
+- Revert the implementation commit associated with this initiative package.
 
 ## 已知限制
 
@@ -713,7 +745,7 @@ function generatedReleaseHandoff() {
 }
 
 function createLegacyRequirementPackages() {
-  if (!createRequirements) {
+  if (!createInitiatives) {
     return;
   }
   if (!exists("docs", "workstreams")) {
@@ -723,7 +755,7 @@ function createLegacyRequirementPackages() {
   for (const source of listWorkstreamFiles()) {
     const descriptor = requirementFolderFromWorkstream(source);
     if (!descriptor) {
-      warnings.push(`${source} does not start with a numeric ID; cannot create requirement package automatically.`);
+      warnings.push(`${source} does not start with a numeric ID; cannot create initiative package automatically.`);
       continue;
     }
 
@@ -731,15 +763,15 @@ function createLegacyRequirementPackages() {
     const rawStatus = field(markdown, "status");
     const workstreamStatus = normalizedWorkstreamStatus(rawStatus);
     if (!workstreamStatus) {
-      warnings.push(`${source} has no recognized status; cannot create requirement package automatically.`);
+      warnings.push(`${source} has no recognized status; cannot create initiative package automatically.`);
       continue;
     }
 
     const requirementStatus = requirementStatusByWorkstreamStatus.get(workstreamStatus) || "planned";
     const lifecycleState = requirementLifecycleByWorkstreamStatus.get(workstreamStatus) || requirementStatus;
-    const targetDir = `docs/requirements/${requirementStatus}/${descriptor.name}`;
+    const targetDir = `${initiativeRoot}/${requirementStatus}/${descriptor.name}`;
     if (exists(targetDir) || scheduledRequirementTargets.has(targetDir)) {
-      warnings.push(`${targetDir} already exists; skip generated requirement package for ${source}.`);
+      warnings.push(`${targetDir} already exists; skip generated initiative package for ${source}.`);
       continue;
     }
 
@@ -787,7 +819,7 @@ function createLegacyRequirementPackages() {
       ["06-发布交接.md", generatedReleaseHandoff()],
     ]);
 
-    operations.push(`create requirement package ${targetDir}/ from ${canonicalSource}`);
+    operations.push(`create initiative package ${targetDir}/ from ${canonicalSource}`);
     if (write) {
       mkdirSync(relative(targetDir, "02-assets"), { recursive: true });
       for (const [fileName, content] of files.entries()) {
@@ -864,13 +896,13 @@ function updateMarkdownReferences() {
 }
 
 function detectLegacyRequirementLayout() {
-  const hasRequirementPackages = exists("docs", "requirements");
+  const hasInitiativePackages = exists("docs", "initiatives") || exists("docs", "requirements");
   const hasLegacyPrd = exists("docs", "prd");
   const hasWorkstreams = exists("docs", "workstreams");
 
-  if (!hasRequirementPackages && hasLegacyPrd && hasWorkstreams && !createRequirements) {
+  if (!hasInitiativePackages && hasLegacyPrd && hasWorkstreams && !createInitiatives) {
     warnings.push(
-      "legacy PRD + workstreams layout detected; run with --create-requirements to generate docs/requirements compatibility packages.",
+      "legacy PRD + workstreams layout detected; run with --create-initiatives to generate docs/initiatives compatibility packages.",
     );
   }
 }
@@ -922,9 +954,9 @@ if (!operations.length && !warnings.length) {
 
 if (!write) {
   console.log("\nRun with --write to apply safe migrations.");
-  if (!createRequirements) {
-    console.log("Run with --create-requirements to also generate docs/requirements compatibility packages.");
+  if (!createInitiatives) {
+    console.log("Run with --create-initiatives to also generate docs/initiatives compatibility packages.");
   } else {
-    console.log("Requirement packages use docs/requirements/<planned|active|done|archived>/<id_slug>/.");
+    console.log("Initiative packages use docs/initiatives/<planned|active|done|archived>/<id_slug>/.");
   }
 }

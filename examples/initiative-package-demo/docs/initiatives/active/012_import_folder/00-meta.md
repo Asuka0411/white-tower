@@ -1,6 +1,6 @@
 # 需求元信息
 
-requirement_id: 012
+initiative_id: 012
 title: 导入文件夹增量扫描
 status: active
 lifecycle_state: active
