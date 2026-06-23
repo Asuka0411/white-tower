@@ -113,8 +113,11 @@ new external services/dependencies.
 Inside the target project:
 
 ```bash
-mkdir -p docs/white-tower docs/workstreams/{draft,ready,active,blocked,done,archived} scripts
+mkdir -p docs/product docs/white-tower docs/workstreams/{draft,ready,active,blocked,done,archived} scripts
 cp /path/to/white-tower/templates/TODO.md TODO.md
+cp /path/to/white-tower/templates/docs/product/PRD.md docs/product/PRD.md
+cp /path/to/white-tower/templates/docs/product/UI.md docs/product/UI.md
+cp /path/to/white-tower/templates/docs/product/TECH.md docs/product/TECH.md
 cp /path/to/white-tower/templates/docs/white-tower/status.md docs/white-tower/status.md
 cp /path/to/white-tower/templates/docs/white-tower/stage-gates.md docs/white-tower/stage-gates.md
 cp -R /path/to/white-tower/templates/docs/workstreams docs/
@@ -303,7 +306,7 @@ Completed workstreams move to `done/`. Abandoned workstreams move to `archived/`
 | --- | --- | --- | --- |
 | 1 | 产品需求 | `docs/prd/README.md` | `source-locked` |
 | 2 | 界面设计 | `docs/uiux/README.md` | `source-locked` |
-| 3 | 准备开发 | `docs/architecture.md`, `docs/technical-plan.md`, `TODO.md` | `source-locked` |
+| 3 | 准备开发 | `docs/product/TECH.md`, initiative technical plans, `TODO.md` | `source-locked` |
 | 4 | 正式开发 | small verified implementation slices | `development` |
 | 5 | 发布交接 | accurate README, verification notes, deployment notes | `release` |
 

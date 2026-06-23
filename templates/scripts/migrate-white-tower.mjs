@@ -555,7 +555,7 @@ Preserve the implementation boundary described by \`${source}\` while migrating 
 
 ## 当前代码风格
 
-Follow the existing project architecture, Flutter/Dart conventions, and legacy \`docs/architecture.md\` / \`docs/technical-plan.md\` guidance.
+Follow the existing project architecture, Flutter/Dart conventions, and \`docs/product/TECH.md\` when present. Legacy \`docs/architecture.md\` / \`docs/technical-plan.md\` files are compatibility inputs only.
 
 ## 架构偏好与分层约束
 
@@ -575,7 +575,7 @@ ${listOrFallback(blockedPaths, ["none"])}
 
 ## 数据结构
 
-Use the current data structures documented in \`docs/architecture.md\` and \`docs/technical-plan.md\`; refine this section before implementation if the task changes storage contracts.
+Use the current data structures documented in \`docs/product/TECH.md\` when present, or legacy \`docs/architecture.md\` / \`docs/technical-plan.md\` as compatibility inputs. Refine this section before implementation if the task changes storage contracts.
 
 ## API / 函数边界
 

@@ -126,16 +126,18 @@ if (sourceLocked) {
 }
 
 if (gateMode === "development" || /^([45])-/.test(currentStage)) {
-  const required = [
-    "docs/architecture.md",
-    "docs/technical-plan.md",
-    "TODO.md",
-  ];
+  const hasTechOverview = existsSync("docs/product/TECH.md");
+  const hasLegacyTechDocs =
+    existsSync("docs/architecture.md") || existsSync("docs/technical-plan.md");
 
-  for (const path of required) {
-    if (!existsSync(path)) {
-      errors.push(`development mode requires ${path}`);
-    }
+  if (!hasTechOverview && !hasLegacyTechDocs) {
+    errors.push(
+      "development mode requires docs/product/TECH.md. Legacy projects may satisfy this with existing docs/architecture.md or docs/technical-plan.md, but new projects should create docs/product/TECH.md.",
+    );
+  }
+
+  if (!existsSync("TODO.md")) {
+    errors.push("development mode requires TODO.md");
   }
 }
 

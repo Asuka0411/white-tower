@@ -34,8 +34,8 @@
 
 **Required outputs:**
 
-- `docs/architecture.md`
-- `docs/technical-plan.md`
+- `docs/product/TECH.md`
+- initiative `03-技术方案.md`
 - `docs/adr/*.md`
 - `docs/workstreams/{draft,ready,active,blocked,done,archived}/*.md`
 - `TODO.md`
@@ -61,7 +61,7 @@
 **Entry conditions:**
 
 - `gate_mode: development`
-- architecture and technical plan exist
+- `docs/product/TECH.md` exists, or legacy `docs/architecture.md` / `docs/technical-plan.md` exists for an old project
 - active workstream exists
 - TODO slice is small and verifiable
 

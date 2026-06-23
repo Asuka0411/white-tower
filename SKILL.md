@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.3-dev
+version: 0.12.4-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.3-dev
+version: 0.12.4-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -110,7 +110,7 @@ Use $white-tower 审查并推进需求单
    - `docs/workstreams/{draft,ready,active,blocked,done,archived}/.gitkeep`
    - 可选：`scripts/check-stage-gate.*`，仅作为白塔自检脚本；脚本语言按仓库现有技术栈选择，无法判断时用 Node 或 shell。
 3. 把 `current_stage` 设为当前真实阶段，使用“编号-中文阶段名”的格式，例如 `3-准备开发`，不要默认进入开发。
-4. 如果没有产品需求，停在阶段 1；如果没有界面设计，停在阶段 2；如果没有技术方案 / 架构和 TODO，停在阶段 3。
+4. 如果没有产品需求，停在阶段 1；如果没有界面设计，停在阶段 2；如果没有 `docs/product/TECH.md`、initiative 技术方案或 TODO，停在阶段 3。旧 `docs/architecture.md` / `docs/technical-plan.md` 只能作为 legacy 兼容输入，不作为新版项目主输出。
 5. 只有阶段 4 且 `gate_mode=development` 后，白塔自己才允许初始化应用工程或写功能代码；未使用白塔的其他人或工具不受这个协议限制。
 
 ### 旧数据兼容与迁移
@@ -415,7 +415,7 @@ gate_mode: source-locked
 
 allowed_actions:
 - update-docs
-- create-architecture
+- create-tech-overview
 - create-todo
 - create-adr
 
@@ -425,8 +425,7 @@ blocked_actions:
 - add-runtime-dependency
 
 gate_to_next_stage:
-- docs/architecture.md exists
-- docs/technical-plan.md exists
+- docs/product/TECH.md exists
 - TODO.md exists and has ordered implementation slices
 - at least one accepted architecture-decision records initial architecture
 ```
@@ -449,7 +448,7 @@ gate_to_next_stage:
 - 检查 `git diff --name-only --cached`、`git diff --name-only` 和 untracked files。
 - 支持 `--staged`，用于白塔提交前自检暂存区；不要默认安装为 hook。
 - 如果白塔在阶段还没有进入正式开发时准备新增源码目录、应用工程、业务代码、运行时依赖，自检失败。
-- 如果白塔试图进入正式开发或当前状态已标记为阶段 4 以后，但 technical-plan、`TODO.md` 或 architecture-decision 缺失，自检失败。
+- 如果白塔试图进入正式开发或当前状态已标记为阶段 4 以后，但 `docs/product/TECH.md`、`TODO.md` 或 architecture-decision 缺失，自检失败。旧 `docs/architecture.md` / `docs/technical-plan.md` 可以让旧项目兼容通过，但检查输出不得建议新建旧路径。
 - 输出清楚的阻塞原因和下一步应补的文档。
 
 示例伪逻辑：
@@ -460,11 +459,11 @@ if current_stage < 4-正式开发:
 
 if current_stage == 3-准备开发:
   require TODO.md
-  allow docs/architecture.md, docs/technical-plan.md, TODO, architecture-decisions, gate docs, check scripts
+  allow docs/product/TECH.md, initiative technical plans, TODO, architecture-decisions, gate docs, check scripts
   block source roots and runtime dependencies
 
 if current_stage >= 4-正式开发:
-  require docs/architecture.md or docs/technical-plan.md
+  require docs/product/TECH.md or legacy docs/architecture.md / docs/technical-plan.md
   require docs/adr/*.md beyond README for initial architecture/tech-stack decision
 
 always:
@@ -717,7 +716,7 @@ stage: 3-准备开发
 
 - `docs/prd/`：产品定位、用户痛点、MVP、页面清单、核心流程、验收标准。
 - `docs/uiux/`：主题、组件规则、关键交互、加载/空/错误状态。
-- `docs/architecture.md`：技术栈、目录结构、数据模型、服务边界、AI 引用机制、开发约束、不变量、禁止破坏的逻辑、验收标准。
+- `docs/product/TECH.md`：技术栈、目录结构、模块边界、数据模型、服务边界、AI 引用机制、开发约束、不变量、禁止破坏的逻辑、验收标准。
 - `TODO.md`：有顺序的实现 backlog。
 - `docs/adr/`：关键技术取舍。
 
@@ -773,7 +772,7 @@ git commit -m "feat: xxx"
 
 预期更新：
 
-- `docs/architecture.md` 反映当前实现。
+- `docs/product/TECH.md` 反映当前实现。
 - `README.md` 说明安装、运行、构建、部署、验证。
 - `TODO.md` 区分已完成、下一步、延期项和已知风险。
 - 发布/部署说明准确。
@@ -820,7 +819,7 @@ git commit -m "feat: xxx"
 - 实现后不更新文档，造成 docs 漂移。
 - 很多无关改动挤成一个大提交。
 - 把聊天记录当唯一产品真相。
-- 部署前跳过 README/架构文档清理。
+- 部署前跳过 README/技术总览清理。
 
 ## 最小命令检查清单
 
