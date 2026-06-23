@@ -25,7 +25,7 @@
 白塔自己的机器控制面必须放在独立目录，避免和老项目或其他工具已有文件撞车：
 
 ```text
-docs/white-tower/status.md       # 当前阶段、门禁模式、允许动作、阻塞动作
+docs/white-tower/status.md       # 当前阶段、自检模式、允许动作、阻塞动作
 docs/white-tower/stage-gates.md  # 阶段定义、进入条件、退出条件
 ```
 

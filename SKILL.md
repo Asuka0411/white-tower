@@ -1,9 +1,9 @@
 ---
 name: white-tower
-version: 0.9.0-dev
+version: 0.10.0-dev
 codename: white-tower
 updated_at: 2026-06-23
-description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, stage gates, repository guardrails, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding gate enforcement with project-status, requirement packages, Gitflow branch checks, pre-commit, pre-push, CI, or check scripts.
+description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, requirement packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, requirement packages, Gitflow branch checks, or check scripts.
 ---
 
 # 白塔协议
@@ -15,7 +15,7 @@ description: 白塔协议 for governed AI assisted product delivery with require
 用户可以显式触发：
 
 ```text
-Use $white-tower 检查当前项目阶段，给出下一步 TODO 和门禁状态。
+Use $white-tower 检查当前项目阶段，给出下一步 TODO 和白塔自检状态。
 ```
 
 确认当前会话是否读到新版白塔时使用：
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.9.0-dev
+version: 0.10.0-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -54,21 +54,21 @@ bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex
 Use $white-tower dispatch max_parallel=2
 ```
 
-这条指令必须自动完成环境判断、任务选择和执行器选择。如果门禁通过且存在 runnable tasks，不要只输出方案，要开始派发任务。
+这条指令必须自动完成环境判断、任务选择和执行器选择。如果白塔自检通过且存在 runnable tasks，不要只输出方案，要开始派发任务。
 
 常见请求和处理方式：
 
-- “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 阶段门禁 / 风险”输出。
+- “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 白塔自检 / 风险”输出。
 - “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
 - “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果用户要求 `docs/requirements/YYYY/QX/<status>/<id>` 需求包结构，使用 `--create-requirements` 生成兼容需求包，可用 `--requirements-period=2026/Q3` 指定季度。
 - “继续”：先读阶段状态和 TODO，只执行当前阶段允许的下一步。
-- “开始开发 / 初始化项目 / 写功能”：先运行门禁检查；如果仍处于 `source-locked`，不要创建源码目录或工程文件。
+- “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
 - “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和需求包任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。
-- “提交代码”：先运行 `node scripts/check-stage-gate.mjs --staged`、仓库既有检查和 `git diff --check`。
+- “提交代码”：白塔自己先运行可用自检、仓库既有检查和 `git diff --check`；不要默认要求项目安装 pre-commit、pre-push 或 CI 阻止其他人。
 - “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/white-tower/status.md`、`TODO.md` 和必要 architecture-decision。
 
-项目第一次接入时，先创建 `docs/white-tower/stage-gates.md`、`docs/white-tower/status.md`、`TODO.md` 和 `scripts/check-stage-gate.mjs`。之后所有后续改动都按 `docs/white-tower/status.md` 的 `current_stage` 和 `gate_mode` 检查。
+项目第一次接入时，先创建 `docs/white-tower/stage-gates.md`、`docs/white-tower/status.md`、`TODO.md`，可选创建 `scripts/check-stage-gate.mjs` 作为白塔自检脚本。之后白塔自己的后续动作都按 `docs/white-tower/status.md` 的 `current_stage` 和 `gate_mode` 自我约束；没有显式使用白塔的 agent、工具或人不受白塔限制。
 
 ## 受控 Vibe Coding 协议
 
@@ -92,17 +92,17 @@ Use $white-tower dispatch max_parallel=2
 当用户在一个新仓库里说“开始”“规划一下”“直接做”“vibe coding”时：
 
 1. 先检查是否已有 `README`、`docs/`、`TODO.md`、源码目录、git 状态。
-2. 如果没有阶段门禁，先创建最小门禁文件：
+2. 如果没有白塔状态文件，先创建最小自检文件：
    - `docs/white-tower/status.md`
    - `docs/white-tower/stage-gates.md`
    - `TODO.md`
    - `docs/workstreams/README.md`
    - `docs/workstreams/template.md`
    - `docs/workstreams/{draft,ready,active,blocked,done,archived}/.gitkeep`
-   - `scripts/check-stage-gate.*`，脚本语言按仓库现有技术栈选择；无法判断时用 Node 或 shell。
+   - 可选：`scripts/check-stage-gate.*`，仅作为白塔自检脚本；脚本语言按仓库现有技术栈选择，无法判断时用 Node 或 shell。
 3. 把 `current_stage` 设为当前真实阶段，使用“编号-中文阶段名”的格式，例如 `3-准备开发`，不要默认进入开发。
 4. 如果没有产品需求，停在阶段 1；如果没有界面设计，停在阶段 2；如果没有技术方案 / 架构和 TODO，停在阶段 3。
-5. 只有阶段 4 且 `gate_mode=development` 后，才允许初始化应用工程或写功能代码。
+5. 只有阶段 4 且 `gate_mode=development` 后，白塔自己才允许初始化应用工程或写功能代码；未使用白塔的其他人或工具不受这个协议限制。
 
 ### 旧数据兼容与迁移
 
@@ -173,12 +173,12 @@ docs/requirements/2026/Q3/completed/000_uiux_interaction_motion/
 1. **Read**：读取 `docs/white-tower/status.md`、`docs/white-tower/stage-gates.md`、`TODO.md`、相关产品需求 / 界面设计 / 架构决策 / workstream 和 `git status`。
 2. **Decide**：判断当前阶段、允许动作、禁止动作、下一步最小切片。
 3. **Act**：只执行一个阶段内的最小可验证动作。
-4. **Verify**：运行门禁脚本、仓库既有检查和与改动相关的最小验证。
+4. **Verify**：运行白塔自检脚本、仓库既有检查和与改动相关的最小验证。
 5. **Checkpoint**：在每个原子动作前后写入可恢复 checkpoint，而不是等本轮结束才记录。
 6. **Record**：更新 TODO、workstream、项目状态、architecture-decision、run record 和 task 状态，使下一次会话能从仓库文件恢复。
 7. **Report**：只总结已经写入仓库的状态；最终报告不能作为恢复依据。
 
-如果循环中发现阶段不满足，停止越级任务，改为补齐门禁产物。
+如果循环中发现阶段不满足，白塔停止自己的越级任务，改为补齐必要产物。
 
 ### Checkpoint-first 恢复模型
 
@@ -247,7 +247,7 @@ execution_lock:
 - 拆 TODO。
 - 创建 workstream。
 - 补 architecture-decision 草稿。
-- 运行门禁和检查。
+- 运行白塔自检和仓库既有检查。
 - 在阶段 4 后按 active workstream 实现小切片。
 
 必须停下来说明或询问：
@@ -255,7 +255,7 @@ execution_lock:
 - 产品方向冲突。
 - 页面范围、平台范围或数据模型冲突。
 - 需要删除、重写或回滚用户已有改动。
-- 门禁要求与用户明确指令冲突。
+- 白塔自检要求与用户明确指令冲突。
 - 需要引入重大依赖、服务端、账号、云同步、公网访问或付费服务。
 
 ### 自动调度：`dispatch`
@@ -271,10 +271,10 @@ execution_lock:
    - `docs/requirements/**/00-meta.md`
    - `docs/requirements/**/03-技术方案.md`
    - `docs/requirements/**/04-任务拆解.md`
-2. **检查门禁**：
-   - 如果存在 `scripts/check-stage-gate.mjs`，先运行。
+2. **白塔自检**：
+   - 如果存在 `scripts/check-stage-gate.mjs`，白塔先运行它作为自检。
    - 如果存在 `scripts/check-requirement-package.mjs`，先运行。
-   - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，才执行编码任务。
+   - 只有 `gate_mode=development` 或项目状态明确允许源码实现时，白塔才执行编码任务。
 3. **选择 runnable tasks**：
    - `status=planned`。
    - `depends_on` 全部完成或为 `none`。
@@ -334,25 +334,27 @@ Implement only this task, run verification, then report changed files and result
 
 在产品需求、界面设计、技术方案 / 架构足够稳定之前，不开始功能实现。
 
-## 拦截模型
+## 自约束模型
 
-Skill 只负责让 agent 会判断门禁，不能单独阻止用户、脚本或另一个 agent 绕过流程。需要三层一起落地：
+白塔只约束显式使用白塔的 agent 自己。它不默认限制其他人、其他工具、其他 agent 或不走白塔的执行方式。
 
-1. 软拦截：把阶段规则写入 skill、`AGENTS.md`、`docs/协作流程.md` 或等价协作文档。作用是让 agent 默认先审计阶段，再决定能不能继续。
-2. 中拦截：把当前阶段写入仓库文件，例如 `docs/white-tower/status.md`，并用脚本检查当前阶段允许什么、禁止什么。
-3. 硬拦截：把检查脚本接入 `pre-commit`、`pre-push`、CI、PR 模板或分支保护。作用是在提交、推送或合并路径上挡住越级改动。
+规则：
 
-不要把“我会遵守 skill”当成真正拦截。真正可依赖的是仓库文件 + 自动检查 + 合并规则。
+1. 白塔读取仓库内状态文件，判断自己当前能做什么。
+2. 白塔可以使用脚本做自检，但这些脚本默认不安装到 `pre-commit`、`pre-push`、CI 或分支保护。
+3. 如果用户明确要求强制治理，才把自检脚本接入 hook、CI 或 PR 流程。
+4. 如果未使用白塔的开发者直接改代码，白塔不把这视为违规；下次运行时只需要重新审计当前真实仓库状态。
+5. 如果白塔自检失败，白塔自己停止越级动作，改为补齐缺失信息或报告阻塞。
 
 ### 推荐仓库文件
 
 优先在项目内创建这些文件，而不是只保存在聊天里：
 
-- `docs/white-tower/stage-gates.md`：五阶段定义、每阶段进入条件、退出条件、允许动作、禁止动作。
-- `docs/white-tower/status.md`：当前阶段、门禁强度、已通过门禁、允许动作、禁止动作、下一阶段条件。
+- `docs/white-tower/stage-gates.md`：白塔自己的阶段定义、进入条件、退出条件、允许动作、禁止动作。
+- `docs/white-tower/status.md`：当前阶段、自检强度、已通过自检、允许动作、禁止动作、下一阶段条件。
 - `TODO.md`：当前阶段和下一阶段的可执行 backlog。
-- `docs/workstreams/`：并行需求的需求级门禁，必须按状态目录管理。
-- `scripts/check-stage-gate.mjs` 或同类脚本：读取阶段状态并检查当前 diff。
+- `docs/workstreams/`：并行需求的需求级边界，必须按状态目录管理。
+- 可选：`scripts/check-stage-gate.mjs` 或同类脚本，供白塔读取阶段状态并检查自己的当前 diff。
 
 `docs/white-tower/status.md` 可以使用这种结构：
 
@@ -383,23 +385,23 @@ gate_to_next_stage:
 
 `gate_mode` 建议使用：
 
-- `bootstrap`：门禁系统第一次加入仓库。
-- `source-locked`：允许文档、架构、TODO、架构决策、门禁脚本和界面设计准备工作，禁止正式源码。
+- `bootstrap`：白塔状态系统第一次加入仓库。
+- `source-locked`：白塔只做文档、架构、TODO、架构决策、自检脚本和界面设计准备工作，不主动写正式源码。
 - `development`：允许源码实现，但必须具备架构、TODO、架构决策和质量命令。
 - `release`：发布前收敛，强调文档反扫、构建、部署和回滚。
 
-### 检查脚本职责
+### 自检脚本职责
 
-`check-stage-gate` 脚本应该做确定性检查，不要依赖 LLM 判断：
+`check-stage-gate` 脚本是白塔自检工具，应该做确定性检查，不要依赖 LLM 判断。默认不要把它装进 `pre-commit`、`pre-push` 或 CI；除非用户明确要求强制治理。
 
 - 读取 `docs/white-tower/status.md` 或等价状态源。
-- 支持 Bootstrap：如果项目还没有 `docs/white-tower/status.md`，只允许新增门禁初始化文件；不要要求一个尚不存在的门禁系统先通过门禁。
+- 支持 Bootstrap：如果项目还没有 `docs/white-tower/status.md`，白塔只新增自身初始化文件；不要要求一个尚不存在的状态系统先通过自检。
 - 检查当前阶段和 `gate_mode` 对应的必需文件是否存在。
-- 检查 changed files 时使用未转义路径，例如 `git -c core.quotePath=false diff --name-only`、`git -c core.quotePath=false diff --name-only --cached` 和 `git -c core.quotePath=false ls-files --others --exclude-standard`，避免中文路径或非 ASCII 路径被 Git quote 后误判门禁。
+- 检查 changed files 时使用未转义路径，例如 `git -c core.quotePath=false diff --name-only`、`git -c core.quotePath=false diff --name-only --cached` 和 `git -c core.quotePath=false ls-files --others --exclude-standard`，避免中文路径或非 ASCII 路径被 Git quote 后误判白塔自检。
 - 检查 `git diff --name-only --cached`、`git diff --name-only` 和 untracked files。
-- 支持 `--staged`，用于 pre-commit 只检查暂存区。
-- 如果阶段还没有进入正式开发，却新增源码目录、应用工程、业务代码、运行时依赖，直接失败。
-- 如果试图进入正式开发或当前状态已标记为阶段 4 以后，但 technical-plan、`TODO.md` 或 architecture-decision 缺失，直接失败。
+- 支持 `--staged`，用于白塔提交前自检暂存区；不要默认安装为 hook。
+- 如果白塔在阶段还没有进入正式开发时准备新增源码目录、应用工程、业务代码、运行时依赖，自检失败。
+- 如果白塔试图进入正式开发或当前状态已标记为阶段 4 以后，但 technical-plan、`TODO.md` 或 architecture-decision 缺失，自检失败。
 - 输出清楚的阻塞原因和下一步应补的文档。
 
 示例伪逻辑：
@@ -438,13 +440,13 @@ test -f TODO.md && sed -n '1,220p' TODO.md || true
 node scripts/check-stage-gate.mjs
 ```
 
-提交前或 hook 中运行：
+白塔提交前可运行：
 
 ```bash
 node scripts/check-stage-gate.mjs --staged
 ```
 
-检查失败时，不要继续越级任务；改为补齐门禁要求，并向用户说明阻塞原因和可执行下一步。
+检查失败时，白塔不要继续自己的越级任务；改为补齐自检要求，并向用户说明阻塞原因和可执行下一步。
 
 ### 文档拆分与 TODO 链接
 
@@ -534,12 +536,12 @@ hotfix_018_login_crash
 
 ### 并行需求
 
-多个需求并行时，使用项目级门禁 + workstream 门禁：
+多个需求并行时，白塔使用项目级自检 + workstream 边界：
 
-- 项目级门禁由 `docs/white-tower/status.md` 管理，决定整个项目能不能进入开发。
-- 需求级门禁由 `docs/workstreams/<status>/<workstream-id>.md` 管理，决定某个需求能改哪些路径。
-- 阶段 1-3 或 `gate_mode=source-locked` 时，即使有多个 workstream，也只能做文档、架构、TODO、架构决策、界面设计和门禁准备。
-- 阶段 4 或 `gate_mode=development` 后，源码改动必须命中至少一个 `docs/workstreams/active/` 下的 `status=active` workstream 的 `allowed_paths`。
+- 项目级自检由 `docs/white-tower/status.md` 管理，决定白塔自己能不能进入开发。
+- 需求级边界由 `docs/workstreams/<status>/<workstream-id>.md` 管理，决定白塔处理某个需求时能改哪些路径。
+- 阶段 1-3 或 `gate_mode=source-locked` 时，即使有多个 workstream，白塔自己也只能做文档、架构、TODO、架构决策、界面设计和自检准备。
+- 阶段 4 或 `gate_mode=development` 后，白塔自己的源码改动必须命中至少一个 `docs/workstreams/active/` 下的 `status=active` workstream 的 `allowed_paths`。
 - 如果多个 workstream 需要改共享契约、数据模型、架构边界，先补 architecture-decision 或在 workstream 中声明依赖。
 
 workstream 必须按状态目录组织：
@@ -608,7 +610,7 @@ stage: 3-准备开发
 - 验收标准。
 - 主要风险和非目标。
 
-门禁检查：
+白塔自检：
 
 - 如果 AI 还需要猜用户、MVP、核心流程或业务规则，停留在本阶段。
 - 如果界面设计阶段发现产品逻辑冲突，回到产品需求修正，不要只在原型里绕过去。
@@ -636,7 +638,7 @@ stage: 3-准备开发
 - 组件和交互状态说明。
 - 必要时导出重点页面截图。
 
-门禁检查：
+白塔自检：
 
 - UI 原型不是为了好看，而是让 coding agent 看懂产品逻辑、布局优先级、文案语气和边界状态。
 - 如果原型暴露需求缺失或流程不顺，回到 PRD。
@@ -654,7 +656,7 @@ stage: 3-准备开发
 - `TODO.md`：有顺序的实现 backlog。
 - `docs/adr/`：关键技术取舍。
 
-门禁检查：
+白塔自检：
 
 - 这些文档不是形式，它们限制后续 AI 不要乱写、乱改、乱扩展。
 - 如果架构解释不了某个功能该放哪里，停留在本阶段。
@@ -684,7 +686,7 @@ git commit -m "feat: xxx"
 
 遵守仓库已有提交规范。如果没有规范且用户偏好中文，使用简洁的简体中文提交信息。
 
-门禁检查：
+白塔自检：
 
 - 一次提交应该对应一个可 review 的行为切片，而不是一堆无关改动。
 - 如果下一次 AI 会看不懂当前进展，停止前先更新 `TODO.md`、`README` 或架构说明。
@@ -711,7 +713,7 @@ git commit -m "feat: xxx"
 - `TODO.md` 区分已完成、下一步、延期项和已知风险。
 - 发布/部署说明准确。
 
-门禁检查：
+白塔自检：
 
 - 不依赖聊天上下文部署。
 - 下一个 AI 或开发者只看仓库文件就能接手。
@@ -733,7 +735,7 @@ git commit -m "feat: xxx"
 - P1: <important but can follow>
 - P2: <later>
 
-**阶段门禁**
+**白塔自检**
 - <what must be true before moving on>
 
 **风险**

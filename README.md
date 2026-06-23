@@ -2,13 +2,13 @@
 
 白塔协议是一个面向 AI 辅助产品交付的治理工作流。它把从想法、需求、界面设计、技术方案、架构决策、任务拆解、多 agent 开发到发布交接的过程固化成仓库内可检查、可恢复、可交接的 SOP。
 
-白塔不直接替你判断产品方向。它负责保存产品真相、约束交付路径，并在需求、设计和架构还没有约束力时阻止越级实现。
+白塔不直接替你判断产品方向。它负责保存产品真相、约束使用白塔的 agent 自己，并在需求、设计和架构还没有约束力时提醒白塔不要越级实现。
 
 ## Features
 
-- **阶段门禁**：按产品需求、界面设计、技术方案、架构、实现、发布交接推进。
+- **阶段自检**：按产品需求、界面设计、技术方案、架构、实现、发布交接推进，约束白塔自己的动作。
 - **仓库内状态源**：用 `docs/white-tower/status.md`、`docs/white-tower/stage-gates.md`、`TODO.md` 记录当前阶段和允许动作。
-- **可执行检查**：提供 `check-stage-gate.mjs` 模板，用确定性脚本拦截越级源码改动。
+- **可执行自检**：提供 `check-stage-gate.mjs` 模板，用确定性脚本帮助白塔判断自己能否继续。
 - **工作流隔离**：用 `docs/workstreams/` 管理并行需求，每个需求声明允许路径、阻塞路径和验收方式。
 - **技术方案治理**：需求级技术方案声明状态、迁移等级、分层约束、影响范围、测试策略、回滚方案和 ADR 要求。
 - **任务追溯**：任务切片必须引用技术方案章节，并声明交付物、验收切片、契约变更和评审重点。
@@ -27,10 +27,10 @@
 │   ├── docs/product/                # 总 PRD / UI / TECH 模板
 │   ├── docs/white-tower/status.md   # 当前阶段状态模板
 │   ├── docs/requirements/template/  # 单需求包模板
-│   ├── docs/white-tower/stage-gates.md # 阶段门禁定义模板
+│   ├── docs/white-tower/stage-gates.md # 阶段自检定义模板
 │   ├── docs/workstreams/            # 工作流模板和状态目录
 │   ├── prompts/task-dispatch.md      # 自动调度多 agent 执行提示词
-│   ├── scripts/check-stage-gate.mjs # 阶段门禁检查脚本模板
+│   ├── scripts/check-stage-gate.mjs # 白塔自检脚本模板
 │   └── scripts/check-requirement-package.mjs # 需求包检查脚本模板
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
@@ -51,7 +51,7 @@ git clone https://github.com/Asuka0411/white-tower.git ~/.codex/skills/white-tow
 Restart Codex or start a new session. You can then invoke it explicitly:
 
 ```text
-Use $white-tower 检查当前项目阶段，给出下一步 TODO 和门禁状态。
+Use $white-tower 检查当前项目阶段，给出下一步 TODO 和白塔自检状态。
 ```
 
 Update the installed skill:
@@ -251,7 +251,7 @@ Completed workstreams move to `done/`. Abandoned workstreams move to `archived/`
 
 ## Stage Model
 
-| Stage | Name | Main output | Gate mode |
+| Stage | Name | Main output | White Tower mode |
 | --- | --- | --- | --- |
 | 1 | 产品需求 | `docs/prd/README.md` | `source-locked` |
 | 2 | 界面设计 | `docs/uiux/README.md` | `source-locked` |
@@ -259,21 +259,23 @@ Completed workstreams move to `done/`. Abandoned workstreams move to `archived/`
 | 4 | 正式开发 | small verified implementation slices | `development` |
 | 5 | 发布交接 | accurate README, verification notes, deployment notes | `release` |
 
-Before stage 4, application source roots and runtime dependencies should be blocked unless they are explicitly part of gate tooling.
+Before stage 4, White Tower should not create application source roots or runtime dependencies unless they are explicitly part of its own setup work. Other people or tools are not constrained unless they opt in.
 
-## Git Hook Example
+## Self-check Example
 
-Use the template checker in a pre-commit hook:
+White Tower uses check scripts for its own decisions. Do not install them as
+`pre-commit`, `pre-push`, CI, or branch protection by default. Other agents,
+tools, and people may ignore White Tower unless they explicitly opt in.
+
+Run the checker manually when using White Tower:
 
 ```bash
-cat > .git/hooks/pre-commit <<'EOF'
-#!/usr/bin/env sh
+node scripts/check-stage-gate.mjs
 node scripts/check-stage-gate.mjs --staged
-EOF
-chmod +x .git/hooks/pre-commit
 ```
 
-The hook checks staged paths against `docs/white-tower/status.md`. In `source-locked` mode it allows planning artifacts and blocks new application source roots such as `src/`, `app/`, `apps/`, `packages/`, and runtime package manifests.
+Only wire these scripts into hooks or CI when the project owner explicitly asks
+for hard enforcement.
 
 ## When to Use
 
@@ -281,7 +283,7 @@ The hook checks staged paths against `docs/white-tower/status.md`. In `source-lo
 - Restarting a project after scope drift.
 - Auditing an existing repo before implementation.
 - Splitting requirements into workstreams and TODO slices.
-- Preventing agents from writing product code before requirements, design, and architecture are durable.
+- Keeping White Tower from writing product code before requirements, design, and architecture are durable.
 
 ## Project Status
 

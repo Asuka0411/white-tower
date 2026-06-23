@@ -18,5 +18,5 @@ current_stage: 3-准备开发
 
 ## Later
 
-- [ ] Add pre-commit, pre-push, or CI integration for `scripts/check-stage-gate.mjs`.
+- [ ] Run `scripts/check-stage-gate.mjs` manually when using White Tower; only add hooks or CI if the project owner explicitly asks for hard enforcement.
 - [ ] Add release handoff documentation before publishing.
