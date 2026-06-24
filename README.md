@@ -120,6 +120,10 @@ typography, and stack guidance. These results are recorded as inputs, not blindl
 accepted; project PRD, confirmed style, page job, and user feedback override any
 misfit recommendation.
 
+`继续` is the default autopilot trigger, not a status check. In `source-locked`
+projects, White Tower should keep moving through the next allowed step as long as
+there is no pending review and no unresolved human gate.
+
 `continue`, `dispatch`, and end-to-end planning commands should run as an
 autopilot loop. After one preparatory action completes, White Tower should
 re-read project state and immediately continue the next allowed action. It

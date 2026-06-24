@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.14-dev
+version: 0.12.15-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.14-dev
+version: 0.12.15-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -75,12 +75,12 @@ Use $white-tower 审查并推进需求单
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 白塔自检 / 风险”输出。
 - “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
+- “继续”：这是自动推进的默认触发词，不是状态汇报。白塔先读阶段状态、TODO、checkpoint 和 pending review，然后继续当前阶段里下一项可推进动作；如果当前没有 pending review 且没有确定性阻塞，也不能停在“已完成一轮”。
+- “实施计划”：在 PRD 和产品级 UI/UX 已确认后，自动推进需求级 UI/UX、技术方案、任务拆解、状态推进、dispatch、验证和记录；不要把它当成单纯的计划讨论。
+- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：在可编码时直接开始 runnable tasks；在不可编码时自动切到前置流程，不要把下一步命令交回给用户选择。
 - “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成交付事项包，使用 `--create-initiatives`；新版目录固定为 `docs/initiatives/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
-- “继续”：先读阶段状态、TODO、checkpoint 和 pending review，然后进入连续自动推进循环；不要只执行一个中间规划动作就停。
-- “实施计划 / 推进实施 / 自动推进项目”：执行端到端自动推进流水线；白塔先确认 PRD 和产品级 UI/UX 是否已确定，然后自动完成 initiative UI/UX、技术方案、任务切片、状态推进、dispatch、验证和记录。
 - “审查并推进需求单 / 推进需求单 / 批量推进技术方案”：执行 initiative 自动审查推进流程；不要要求用户逐个打开 `03-技术方案.md` 手动从 `draft` 改到 `review`。
 - “开始开发 / 初始化项目 / 写功能”：先运行白塔自检；如果仍处于 `source-locked`，白塔自己不要创建源码目录或工程文件。
-- “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：执行自动调度流程，读取当前阶段、workstreams 和 initiative 任务，选择 Codex 多 agent、OMP task 或顺序 fallback，并开始执行 runnable tasks。如果当前阶段还不允许编码，自动转入“审查并推进需求单”或当前阶段补齐流程，不要把操作选择交给用户。
 - “提交代码”：白塔自己先运行可用自检、仓库既有检查和 `git diff --check`；不要默认要求项目安装 pre-commit、pre-push 或 CI 阻止其他人。
 - “升级到下一阶段”：确认阶段退出条件满足，再更新 `docs/white-tower/status.md`、`TODO.md` 和必要 architecture-decision。
 
@@ -126,6 +126,7 @@ Use $white-tower 审查并推进需求单
 - 运行验证、更新验收记录、反写 `docs/product/PRD.md`、`docs/product/UI.md`、`docs/product/TECH.md` 和 release handoff。
 
 不要把阶段状态、文件移动、`plan_status`、`lifecycle_state`、任务切片或 dispatch 选择交给用户手动操作。只有上面列出的人工决策项才需要停下来问。
+- 当 `current_stage=3-准备开发` 且 `gate_mode=source-locked` 时，`继续` 仍然是推进命令，不是终点命令；如果当前没有 pending review，也没有人工卡点，就继续补齐技术方案、任务拆解、验收记录、发布交接或下一个可推进动作。
 
 ### UI/UX 确认门禁
 

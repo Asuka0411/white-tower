@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Clarified that `继续` is the default autopilot trigger, including in `source-locked` projects.
 - Clarified that approved technical plans, successful checks, commits, pushes, clean working trees, and completed batches are checkpoints, not autopilot stop conditions.
 - Added a `ui-ux-pro-max` priority strategy for UI/UX design research while preserving PRD and page-job override rules.
 - Added a UI/UX drawing quality gate for page-job briefs, end-user copy, structural simplification, material revision deltas, and screenshot self-review before user confirmation.
