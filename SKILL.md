@@ -1,8 +1,8 @@
 ---
 name: white-tower
-version: 0.12.15-dev
+version: 0.12.16-dev
 codename: white-tower
-updated_at: 2026-06-23
+updated_at: 2026-06-24
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
 ---
 
@@ -75,7 +75,7 @@ Use $white-tower 审查并推进需求单
 - “当前进度到哪了”：审计 `README`、`docs/`、`TODO.md`、`docs/white-tower/status.md`、`git status`，按“当前阶段 / 已完成 / 待办 / 白塔自检 / 风险”输出。
 - “更新白塔 / 更新 white-tower / 更新这个 skill”：默认运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh codex`，输出更新结果和版本信息。
 - “更新所有白塔 / 更新全部工具里的白塔”：运行 `bash ~/.codex/skills/white-tower/scripts/update-white-tower.sh all`，逐个更新 Codex、Claude Code、Hermes、agents 和 OMP 中已经安装为 git clone 的目标；未安装目标跳过，脏目录或拉取失败必须报错。
-- “继续”：这是自动推进的默认触发词，不是状态汇报。白塔先读阶段状态、TODO、checkpoint 和 pending review，然后继续当前阶段里下一项可推进动作；如果当前没有 pending review 且没有确定性阻塞，也不能停在“已完成一轮”。
+- “继续”：这是自动推进的默认触发词，不是状态汇报。白塔先读阶段状态、TODO、checkpoint 和 pending review，然后继续当前阶段里下一项可推进动作；如果当前没有 pending review 且没有确定性阻塞，也不能停在“已完成一轮”“这一批做完了”“当前没有新 active slice”“工作树已干净”或任何等价的结束语。
 - “实施计划”：在 PRD 和产品级 UI/UX 已确认后，自动推进需求级 UI/UX、技术方案、任务拆解、状态推进、dispatch、验证和记录；不要把它当成单纯的计划讨论。
 - “dispatch / 自动调度 / 开始多 agent 编码 / 按 workstreams 自动执行”：在可编码时直接开始 runnable tasks；在不可编码时自动切到前置流程，不要把下一步命令交回给用户选择。
 - “迁移旧白塔数据 / migrate legacy / 兼容旧数据”：先运行 `node scripts/migrate-white-tower.mjs` 或模板脚本的 dry-run；确认只包含安全迁移后运行 `node scripts/migrate-white-tower.mjs --write`。如果需要从旧 workstream 生成交付事项包，使用 `--create-initiatives`；新版目录固定为 `docs/initiatives/<planned|active|done|archived>/<id>`，不再按年份或季度分层。
@@ -339,7 +339,7 @@ docs/initiatives/done/000_uiux_interaction_motion/
 6. **Record**：更新 TODO、workstream、项目状态、architecture-decision、run record 和 task 状态，使下一次会话能从仓库文件恢复。
 7. **Report**：只总结已经写入仓库的状态；最终报告不能作为恢复依据。
 
-完成一个 `Act -> Verify -> Checkpoint -> Record` 后，白塔必须立刻重新执行 Read/Decide，继续下一个可推进动作。不要因为完成了 `REVIEW_ITEMS.md`、TODO 更新、状态同步、checkpoint、run record、格式修复、索引重建或自检通过就停止；这些都是中间动作，不是终点。
+完成一个 `Act -> Verify -> Checkpoint -> Record` 后，白塔必须立刻重新执行 Read/Decide，继续下一个可推进动作。不要因为完成了 `REVIEW_ITEMS.md`、TODO 更新、状态同步、checkpoint、run record、格式修复、索引重建、自检通过、commit 成功、push 成功、工作树干净或某个 worker / batch / initiative 暂时做完就停止；这些都是中间动作，不是终点。
 
 以下都只是中间 checkpoint，不是自动推进的结束条件：
 
@@ -351,8 +351,11 @@ docs/initiatives/done/000_uiux_interaction_motion/
 - 工作树变干净。
 - 某一批 planned / review initiative 处理完成。
 - 某一个 active task、worker 或 dispatch batch 完成。
+- 当前批次没有创建新的 active slice。
 
-遇到这些结果时，白塔必须继续重新读取仓库状态，寻找下一项可推进工作：下一个 planned/review initiative、下一个缺失 `04-任务拆解.md` 的事项、下一个可切细的 task DAG、下一个可 active 的 initiative、下一个 runnable task、下一个可验证/可反写的验收或发布交接动作。
+白塔没有 “end-of-run” 结束姿态。只要还有下一项可推进工作，或者还能把当前工作再切细成更小的可验证 slice，就必须继续 Read/Decide/Act/Verify/Checkpoint/Record。只有在完整扫描当前阶段输入后，确认没有 `pending_review`、没有 planned/review initiative 可推进、没有缺失技术方案/任务拆解/验收记录/发布交接、没有 runnable task、没有可修复检查项，并把“无可推进项”的依据写入 run record 或状态文件后，才可以停下来。
+
+遇到这些结果时，白塔必须继续重新读取仓库状态，寻找下一项可推进工作：下一个 planned/review initiative、下一个缺失 `04-任务拆解.md` 的事项、下一个可切细的 task DAG、下一个可 active 的 initiative、下一个 runnable task、下一个可验证/可反写的验收或发布交接动作；如果当前批次没有新的 active slice，也不是停机条件，而是重新切片的信号。
 
 只有以下情况可以停下来：
 
@@ -363,7 +366,7 @@ docs/initiatives/done/000_uiux_interaction_motion/
 - 工具、权限、网络、依赖安装、上下文容量或运行环境限制导致无法继续。
 - 完整扫描当前阶段输入后，确认没有 `pending_review`、没有 planned/review initiative 可推进、没有缺失技术方案/任务拆解/验收记录/发布交接、没有 runnable task、没有可修复检查项，并把“无可推进项”的依据写入 run record 或状态文件。
 
-如果循环中发现阶段不满足，白塔不要停止在“下一步是补齐 X”的报告上；应自动补齐当前阶段允许补齐的必要产物。只有补齐动作触发上面的人工卡点或阻塞时才停。
+如果循环中发现阶段不满足，白塔不要停止在“下一步是补齐 X”的报告上；应自动补齐当前阶段允许补齐的必要产物。只有补齐动作触发上面的人工卡点或阻塞时才停。不要把“计划已确认、文档已同步、任务已切完、代码已提交、推送完成、tree clean”误判成结束。
 
 UI/UX-first 项目的连续推进规则：
 
