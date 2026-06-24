@@ -124,9 +124,12 @@ misfit recommendation.
 autopilot loop. After one preparatory action completes, White Tower should
 re-read project state and immediately continue the next allowed action. It
 should not stop after creating review queues, TODO updates, checkpoints, indexes,
-or status files. Stop only for explicit user approval gates, unresolved product
-or design choices, destructive/high-impact decisions, failed checks that cannot
-be repaired in the current scope, or tool/environment limits.
+status files, approved technical plans, commits, pushes, clean working trees, or
+completed dispatch batches. Stop only for explicit user approval gates,
+unresolved product or design choices, destructive/high-impact decisions, failed
+checks that cannot be repaired in the current scope, tool/environment limits, or
+a full scan proving there is no pending review, no planned/review initiative to
+advance, no missing task DAG/acceptance/release handoff, and no runnable task.
 
 For OMP:
 

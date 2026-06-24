@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.12.13-dev
+version: 0.12.14-dev
 codename: white-tower
 updated_at: 2026-06-23
 description: 白塔协议 for governed AI assisted product delivery with requirement discussion, PRD governance, interface design, technical plans, initiative packages, task DAGs, Gitflow multi-agent execution, self-governed phase checks, checkpoint-first recovery, and release handoff. Use when the user wants to start, adopt, plan, restart, audit, or continue a product from requirements to UI, technical plan, task slicing, implementation, verification, and release/deployment; when deciding current progress and next actions before coding; or when adding White Tower self-checks with project-status, initiative packages, Gitflow branch checks, or check scripts.
@@ -28,7 +28,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at，以及
 
 ```text
 name: white-tower
-version: 0.12.13-dev
+version: 0.12.14-dev
 codename: white-tower
 updated_at: 2026-06-23
 branch pattern: <type>_<id>_<short_name>
@@ -340,6 +340,19 @@ docs/initiatives/done/000_uiux_interaction_motion/
 
 完成一个 `Act -> Verify -> Checkpoint -> Record` 后，白塔必须立刻重新执行 Read/Decide，继续下一个可推进动作。不要因为完成了 `REVIEW_ITEMS.md`、TODO 更新、状态同步、checkpoint、run record、格式修复、索引重建或自检通过就停止；这些都是中间动作，不是终点。
 
+以下都只是中间 checkpoint，不是自动推进的结束条件：
+
+- 技术方案从 `review` 改成 `approved`。
+- initiative、TODO、状态文件或索引已经同步。
+- 验证命令通过。
+- commit 成功。
+- push 成功。
+- 工作树变干净。
+- 某一批 planned / review initiative 处理完成。
+- 某一个 active task、worker 或 dispatch batch 完成。
+
+遇到这些结果时，白塔必须继续重新读取仓库状态，寻找下一项可推进工作：下一个 planned/review initiative、下一个缺失 `04-任务拆解.md` 的事项、下一个可切细的 task DAG、下一个可 active 的 initiative、下一个 runnable task、下一个可验证/可反写的验收或发布交接动作。
+
 只有以下情况可以停下来：
 
 - 需要用户确认 PRD / 产品范围 / 优先级 / 非目标。
@@ -347,6 +360,7 @@ docs/initiatives/done/000_uiux_interaction_motion/
 - 需要用户在多个 UI/UX 方向、重大架构、破坏性数据迁移、外部服务、付费能力或删除用户已有改动之间做取舍。
 - 确定性检查失败，且白塔无法在当前允许范围内自动修复。
 - 工具、权限、网络、依赖安装、上下文容量或运行环境限制导致无法继续。
+- 完整扫描当前阶段输入后，确认没有 `pending_review`、没有 planned/review initiative 可推进、没有缺失技术方案/任务拆解/验收记录/发布交接、没有 runnable task、没有可修复检查项，并把“无可推进项”的依据写入 run record 或状态文件。
 
 如果循环中发现阶段不满足，白塔不要停止在“下一步是补齐 X”的报告上；应自动补齐当前阶段允许补齐的必要产物。只有补齐动作触发上面的人工卡点或阻塞时才停。
 
@@ -387,6 +401,7 @@ UI/UX-first 项目的连续推进规则：
 - 需求级 UI/UX 草稿完成后，白塔必须在对话中发送可预览图片给用户确认。用户明确确认前，只能继续准备不依赖 UI/UX 批准的草案资料，不得批准技术方案、推进 initiative 生命周期或执行源码 dispatch。
 - `plan_status=draft` 且必填章节完整、无明显占位、能约束实现、未解决问题不阻塞评审时，白塔可改为 `plan_status=review`。
 - `plan_status=review` 只有在用户或明确的评审记录批准后才能改为 `approved`。
+- 把一个或多个 `03-技术方案.md` 改成 `approved` 后，白塔不得停止；必须继续检查对应 initiative 是否已有可执行 `04-任务拆解.md`、allowed paths、blocked paths、verification、checkpoint 约定和 task DAG。缺失时自动补齐，满足条件时继续推进到可 dispatch 状态。
 - 外部目录只使用 `planned/active/done/archived/`。准备、评审、暂停、阻塞等细状态写入 `lifecycle_state`，不要新建细状态目录。
 - 从 `planned/` 移到 `active/` 前，必须已有可执行任务、允许路径、阻塞路径、验证命令和恢复 checkpoint 约定。
 - 从 `active/` 移到 `done/` 前，必须有验收记录、验证结果和全局产品文档反写。
