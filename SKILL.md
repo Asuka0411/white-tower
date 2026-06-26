@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.15.0-dev
+version: 0.15.1-dev
 codename: white-tower
 updated_at: 2026-06-26
 description: 白塔协议 for task-pool based AI product delivery. Use when the user wants to capture requirements, bugs, UI/UX work, improvements, refactors, releases, or follow-ups; normalize them into durable work item packages; select runnable tasks by type, priority, status, dependencies, path conflicts, and human gates; then plan, slice, execute with Gitflow and optional multi-agent parallelism, verify, commit, merge, release when needed, archive, sweep follow-ups, and keep looping until only explicit human gates or hard blockers remain.
@@ -19,6 +19,11 @@ description: 白塔协议 for task-pool based AI product delivery. Use when the 
 
 ## 快速触发
 
+启动横幅：
+
+- 每次执行 `$white-tower` 后，回复第一行必须显示当前 skill 版本，格式固定为 `white-tower version: <version>`。
+- 第一行只放版本横幅；后续再输出状态、计划、问题、图片或执行结果。
+
 自检：
 
 ```text
@@ -29,7 +34,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at、核心
 
 ```text
 name: white-tower
-version: 0.15.0-dev
+version: 0.15.1-dev
 codename: white-tower
 updated_at: 2026-06-26
 core model: task generation + task selection/execution loop

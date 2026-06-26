@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Require every White Tower run to print `white-tower version: <version>` as the first response line.
 - Added `docs/gitflow.md` as the project-level Gitflow source of truth and changed branch naming to `<type>/<id6>_<YYMMDD>_<short_name>`.
 - Updated branch validation, templates, and demos for `feature/000012_260626_import_folder` style branches.
 - Slimmed the White Tower skill into an execution-focused contract, removing migration details from the main skill body and reducing repeated explanatory sections.
