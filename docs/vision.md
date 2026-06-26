@@ -1,290 +1,91 @@
 # 白塔协议 Vision
 
-白塔协议的目标是把 AI 辅助开发升级为可治理的产品交付 SOP：先把需求讨论清楚，再按标准文档、界面设计、技术方案、任务拆解、并行开发、验证、发布交接逐步推进。
+白塔的目标是把 AI 辅助开发变成可恢复、可并发、可审计的产品工程 SOP。
 
-## 目标形态
+它不做阶段门禁平台，也不替代项目管理软件。白塔只负责一条主线：把输入转成任务池，从任务池选择 runnable work，执行并验证，然后继续下一轮。
+
+## 设计边界
+
+- 产品真相必须落在仓库文件里，不能只留在聊天里。
+- 同一个交付事项的 PRD、UI/UX、技术方案、任务拆解、验收和发布交接放在同一个 initiative package。
+- 白塔只约束显式使用白塔的 agent 自己，不默认限制其他工具或其他人。
+- 人工确认只保留在高影响决策上：PRD / 产品范围、产品级 UI/UX、需求级 UI/UX 图片、重大架构、破坏性迁移、外部服务、付费能力和删除用户已有改动。
+- 其他可安全推进的工作应该自动循环执行，不停在“已提交”“工作树干净”“本轮完成”。
+
+## 标准目录
 
 ```text
-需求讨论
- -> 需求定稿
- -> initiative 落档
- -> 界面设计
- -> 原型 / 高保真 / 交互 / 动效
- -> 技术方案
- -> 任务拆解 / 排期 / 依赖图
- -> Gitflow 多 agent 并行开发
- -> 单测 / 验证 / 合并 / 提交
- -> 总 PRD / UI / TECH 反写
- -> 发布 / 部署 / 交接
+docs/product/PRD.md
+docs/product/UI.md
+docs/product/TECH.md
+docs/adr/
+docs/gitflow.md
+docs/white-tower/status.md
+docs/initiatives/planned/
+docs/initiatives/active/
+docs/initiatives/done/
+docs/initiatives/archived/
 ```
 
-## 文档组织原则
-
-同一个交付事项的产品、界面、技术、任务和验收文档必须放在同一个 initiative 包内，避免 PRD、UI、技术方案分散在不同目录后失去关联。
-
-白塔自己的机器控制面必须放在独立目录，避免和老项目或其他工具已有文件撞车：
+单个 initiative：
 
 ```text
-docs/white-tower/status.md       # 当前阶段、自检模式、允许动作、阻塞动作
-docs/white-tower/stage-gates.md  # 阶段定义、进入条件、退出条件
-```
-
-同时保留全局汇总文档：
-
-```text
-docs/product/PRD.md     # 当前产品完整事实
-docs/product/UI.md      # 当前界面规范、页面索引、交互事实
-docs/product/TECH.md    # 当前技术总览、模块边界、质量命令
-docs/adr/               # 全局架构决策记录
-```
-
-workstream 按状态目录管理，避免已完成任务继续混在待执行队列中：
-
-```text
-docs/workstreams/
-├── draft/
-├── ready/
-├── active/
-├── blocked/
-├── done/
-└── archived/
-```
-
-`status` 必须和所在目录一致。完成后移入 `done/`，归档后移入 `archived/` 并写明原因。
-
-initiative 只按少数外部状态组织，不再按年份或季度分层：
-
-```text
-docs/initiatives/
-├── planned/
-├── active/
-├── done/
-└── archived/
-```
-
-更细的识别状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。
-
-单个 initiative 结构：
-
-```text
-docs/initiatives/active/012_import_folder/
+docs/initiatives/active/012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
 ├── 02-assets/
-│   ├── wireframe.png
-│   └── hifi.png
 ├── 03-技术方案.md
 ├── 04-任务拆解.md
 ├── 05-验收记录.md
-└── 06-发布交接.md
+├── 06-发布交接.md
+├── 07_runs/
+└── 08_checkpoints/
 ```
 
-## 需求讨论阶段
+外部目录只保留 `planned`、`active`、`done`、`archived`。更细的状态写入 `00-meta.md` 的 `lifecycle_state`。
 
-可以接入需求讨论插件或专门的需求澄清 agent。该阶段目标不是产出代码，而是消除偏差。
-
-必须沉淀：
-
-- 用户目标
-- 背景问题
-- 用户流程
-- 范围和非目标
-- 验收标准
-- 冲突点
-- 未决问题
-- 人工确认记录
-
-如果仍有核心歧义，不能进入界面设计。
-
-## Initiative 阶段
-
-需求定稿后，创建 initiative。initiative 必须有稳定 ID，例如 `012`，并在所有文档、任务、分支、提交记录中保持一致。
-
-`00-meta.md` 必须记录：
-
-- initiative_id
-- title
-- status
-- owner
-- priority
-- created_at
-- target_release
-- source_discussion
-- human_review_required
-- linked_branches
-
-## 界面设计阶段
-
-界面设计写在 initiative 内的 `02-界面设计.md`，与该需求的 PRD、技术方案和任务拆解放在一起。
-
-必须覆盖：
-
-- 页面清单
-- 用户流程
-- 页面跳转
-- 低保真原型
-- 高保真图
-- 组件状态
-- 加载、空、错误、禁用状态
-- 交互说明
-- 动效说明
-- 与现有项目风格的对齐点
-
-图片、截图、原型导出文件放在 `02-assets/`。
-
-如果该需求改变了产品级界面规范，完成后必须反写 `docs/product/UI.md`。
-
-## 技术方案阶段
-
-技术方案写在 initiative 内的 `03-技术方案.md`，不要和其他需求混在一个大文件里。
-
-必须覆盖：
-
-- 技术方案状态：draft、review、approved、superseded
-- 迁移等级：none、compatible、breaking
-- 技术目标
-- 当前代码风格和目录约束
-- 架构偏好与分层约束，例如 UI 与数据分离、MVVM 或等价状态协调模式
-- 影响模块
-- 非影响模块
-- 数据结构
-- API 或函数边界
-- 状态流
-- 错误处理
-- 测试策略
-- 兼容性和迁移
-- 风险和回滚
-- 未解决问题
-
-如果技术方案涉及长期架构取舍，必须新增或更新 `docs/adr/*.md`。
-
-如果 `migration_level=breaking`，必须有 ADR。技术方案在 `plan_status=approved` 前，`未解决问题` 必须为 `none`。
-
-默认偏好是 UI 与数据分离：UI 层只负责展示、交互入口和状态渲染；ViewModel、Presenter、Controller 或等价状态协调层负责把领域状态转换成 UI 状态；数据访问、持久化、网络请求和外部服务放在数据层或服务层。小 UI 改动不应穿透修改数据层；如果必须穿透，技术方案必须写清原因和影响范围。
-
-如果该需求改变了项目技术事实，完成后必须反写 `docs/product/TECH.md`。
-
-## 任务拆解阶段
-
-任务拆解写在 `04-任务拆解.md`。任务不是普通 TODO，而是可执行 DAG。
-
-每个任务必须包含：
-
-- task_id
-- title
-- branch
-- agent
-- status
-- depends_on
-- can_parallel
-- source_plan_sections
-- deliverable
-- acceptance_slice
-- contract_changes
-- review_focus
-- allowed_paths
-- blocked_paths
-- verification
-- merge_target
-- conflict_risk
-- commit_policy
-
-没有 `source_plan_sections`、`deliverable`、`acceptance_slice`、`allowed_paths`、`verification`、`depends_on` 的任务不能派给 agent。`source_plan_sections` 必须能在 `03-技术方案.md` 中找到对应章节。
-
-## Gitflow 和分支命名
-
-采用 Gitflow：
+## 执行循环
 
 ```text
-main
-develop
-release_2026q3_001
-hotfix_018_login_crash
-feat_012_import_folder
-feat_012_scan_diff
-fix_012_scan_error
+收集输入
+ -> 规范任务
+ -> 分类 / 优先级 / 依赖 / 状态
+ -> 选择 runnable tasks
+ -> 计划 / 技术方案 / 细粒度切片
+ -> Gitflow 执行
+ -> 验证
+ -> 提交 / 合并 / 视情况发布
+ -> 归档 / 扫尾
+ -> 重新扫描
 ```
 
-分支命名规则：
+如果没有 runnable source task，白塔不应立即停下。它应先尝试补齐 PRD、UI/UX review、技术方案、任务 DAG、验收记录、发布交接或归档扫尾。
+
+## Gitflow
+
+跨 AI 协作的分支、合并和发布标准统一写入 `docs/gitflow.md`。
+
+默认分支格式：
 
 ```text
-<type>_<id>_<short_name>
+<type>/<id6>_<YYMMDD>_<short_name>
 ```
 
-规则：
+示例：
 
-- ID 不加 `REQ` 前缀。
-- 全部小写。
-- 统一使用下划线 `_`。
-- 不使用短横线 `-`。
-- `type` 仅允许 `feat`、`fix`、`hotfix`、`release`。
-- `id` 必须对应 initiative ID 或发布编号。
-- `short_name` 应简短表达任务内容。
-
-## 多 agent 并行开发
-
-多 agent 只能从 `04-任务拆解.md` 中领取任务。每个 agent 必须遵守任务的 `allowed_paths` 和 `blocked_paths`。
-
-并行规则：
-
-- 无前置依赖的任务可以并行。
-- 有 `depends_on` 的任务必须等前置任务完成和合并。
-- 合并顺序按依赖图，不按完成时间。
-- 共享契约、数据模型、路由、核心架构变更必须先有 ADR 或任务级冲突声明。
-- 每个任务完成后必须更新任务状态和验收记录。
-
-任务完成标准：
-
-- 代码实现完成。
-- 单测或指定验证命令通过。
-- 相关文档已更新。
-- `04-任务拆解.md` 状态已更新。
-- `05-验收记录.md` 写入验证结果。
-- 分支合并到目标分支。
-
-## 反写规则
-
-需求完成后不能只移动到 `done/`。必须反写全局事实：
-
-- 产品能力变化反写 `docs/product/PRD.md`。
-- 页面、交互、视觉规范变化反写 `docs/product/UI.md`。
-- 技术结构、命令、模块边界变化反写 `docs/product/TECH.md`。
-- 架构取舍变化反写 `docs/adr/*.md`。
-
-如果需求被放弃或过期，移动到 `archived/`，并写明归档原因，不进入全局当前事实。
-
-## 人工确认点
-
-这些阶段默认需要用户过目：
-
-- 需求定稿
-- 界面设计确认
-- 技术方案确认
-- 任务拆解和排期确认
-- 发布前确认
-
-用户明确授权后，可以降低确认频率，但不能跳过记录。
-
-## CLI 未来命令
-
-```bash
-white-tower init
-white-tower adopt
-white-tower request create 012_import_folder
-white-tower request audit
-white-tower task plan
-white-tower task check
-white-tower branch check
-white-tower check --staged
-white-tower release check
+```text
+feature/000012_260626_import_folder
+fix/000014_260626_scan_error
+release/000001_260626_app_store_beta
+hotfix/000018_260626_launch_crash
 ```
 
-CLI 负责确定性检查，不负责替代用户做产品判断。
+## 质量原则
 
-当前原型脚本：
-
-```bash
-node templates/scripts/check-stage-gate.mjs
-node templates/scripts/check-initiative-package.mjs <project> --branch=feat_012_import_folder
-```
+- 任务要拆到单个 agent 能稳定完成和验证的粒度。
+- 可并发页面、Tab、局部 ViewModel、UI token、测试夹具不应被无故串行。
+- 共享 schema、路由、manifest、迁移、公共 API、最终集成、release 和 hotfix 默认串行。
+- UI 层与数据层默认分离；UI 只负责展示、交互入口和状态渲染。
+- 每个任务都要声明 `allowed_paths`、`blocked_paths`、`verification`、`branch` 和 `merge_target`。
+- 中断恢复必须依赖 run record、checkpoint、task 状态和 git diff，而不是最终聊天总结。

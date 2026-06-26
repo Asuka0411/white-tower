@@ -12,7 +12,7 @@ source_discussion:
 human_review_required: true
 
 linked_branches:
-- feat_012_<short_name>
+- feature/000012_260626_short_name
 
 ## 状态历史
 

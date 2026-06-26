@@ -153,8 +153,12 @@ function fail(errors) {
 }
 
 function validBranch(name) {
-  return /^(feat|fix|hotfix)_\d{3,}_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(name)
-    || /^release_\d{4}q[1-4]_\d{3,}$/.test(name);
+  return /^(feature|fix|hotfix|release)\/\d{6}_\d{6}_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(name);
+}
+
+function branchId(name) {
+  const match = name.match(/^(?:feature|fix|hotfix|release)\/(\d{6})_/);
+  return match ? String(Number(match[1])) : "";
 }
 
 const errors = [];
@@ -203,7 +207,7 @@ function folderStatusForLifecycle(lifecycleState) {
 }
 
 if (branchName && !validBranch(branchName)) {
-  errors.push(`Invalid branch name: ${branchName}. Use lowercase underscores, e.g. feat_012_import_folder.`);
+  errors.push(`Invalid branch name: ${branchName}. Use <type>/<id6>_<YYMMDD>_<short_name>, e.g. feature/000012_260626_import_folder.`);
 }
 
 const packages = listMarkdownDirs("docs/initiatives");
@@ -267,7 +271,7 @@ for (const packageDir of packages) {
     if (!validBranch(linkedBranch)) {
       errors.push(`${packageDir}/00-meta.md has invalid linked branch ${linkedBranch}.`);
     }
-    if (initiativeId && /^feat_|^fix_|^hotfix_/.test(linkedBranch) && !linkedBranch.startsWith(`feat_${initiativeId}_`) && !linkedBranch.startsWith(`fix_${initiativeId}_`) && !linkedBranch.startsWith(`hotfix_${initiativeId}_`)) {
+    if (initiativeId && /^(feature|fix|hotfix)\//.test(linkedBranch) && branchId(linkedBranch) !== String(Number(initiativeId))) {
       errors.push(`${packageDir}/00-meta.md linked branch ${linkedBranch} does not match initiative_id=${initiativeId}.`);
     }
   }
@@ -339,7 +343,7 @@ for (const packageDir of packages) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare branch.`);
     } else if (!validBranch(branch)) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} has invalid branch ${branch}.`);
-    } else if (initiativeId && /^feat_|^fix_|^hotfix_/.test(branch) && !branch.startsWith(`feat_${initiativeId}_`) && !branch.startsWith(`fix_${initiativeId}_`) && !branch.startsWith(`hotfix_${initiativeId}_`)) {
+    } else if (initiativeId && /^(feature|fix|hotfix)\//.test(branch) && branchId(branch) !== String(Number(initiativeId))) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} branch ${branch} does not match initiative_id=${initiativeId}.`);
     }
 

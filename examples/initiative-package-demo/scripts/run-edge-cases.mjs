@@ -23,7 +23,7 @@ function cloneDemo() {
   return tempRoot;
 }
 
-function run(root, branch = "feat_012_import_folder") {
+function run(root, branch = "feature/000012_260626_import_folder") {
   return spawnSync(process.execPath, [checker, root, `--branch=${branch}`], {
     encoding: "utf8",
   });
@@ -38,19 +38,19 @@ const cases = [
   {
     name: "branch with REQ prefix fails",
     expectPass: false,
-    branch: "feat_REQ_012_import_folder",
+    branch: "feature/REQ012_260626_import_folder",
     mutate() {},
   },
   {
     name: "branch with hyphen fails",
     expectPass: false,
-    branch: "feat_012_import-folder",
+    branch: "feature/000012_260626_import-folder",
     mutate() {},
   },
   {
     name: "uppercase branch fails",
     expectPass: false,
-    branch: "feat_012_Import_Folder",
+    branch: "feature/000012_260626_Import_Folder",
     mutate() {},
   },
   {
@@ -197,7 +197,7 @@ const cases = [
       mutate(
         root,
         "docs/initiatives/active/012_import_folder/04-任务拆解.md",
-        (text) => text.replace("branch: feat_012_scan_diff", "branch: feat_013_scan_diff"),
+        (text) => text.replace("branch: feature/000012_260626_scan_diff", "branch: feature/000013_260626_scan_diff"),
       );
     },
   },

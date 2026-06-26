@@ -1,31 +1,54 @@
-# Project Status
+# White Tower Status
 
-current_stage: 3-准备开发
+```yaml
+task_pool_model: true
+status_version: 0.14.0-dev
+loop_state: collecting
+last_scan_at:
+active_run:
+pending_human_gate: none
+```
 
-gate_mode: source-locked
+## Current Focus
 
-allowed_actions:
+- collect-tasks
+- refine-initiatives
+- dispatch-runnable-tasks
+- verify-and-archive
+- sweep-followups
+
+## Allowed Actions
+
 - update-docs
-- create-product-requirements
-- create-experience-design
-- create-tech-overview
-- create-initiative-technical-plan
-- create-adr
-- create-workstream
-- create-todo
-- update-gate-checks
+- create-or-update-initiative
+- create-uiux-review
+- create-technical-plan
+- create-task-dag
+- dispatch-runnable-task
+- verify
+- commit-or-merge
+- archive
+- sweep-followups
 
-blocked_actions:
-- initialize-app-code
-- implement-feature
-- add-runtime-dependency
-- create-deployment
+## Human Gates
 
-gate_to_next_stage:
-- docs/product/TECH.md exists
-- TODO.md exists and has ordered implementation slices
-- docs/adr/ contains at least one accepted architecture decision
-- at least one workstream is active with allowed paths and verification steps
+- PRD / product scope
+- product-level UI/UX
+- UI/UX image review
+- major architecture
+- destructive migration
+- external service
+- paid capability
+- deleting user work
 
-last_verified:
-- node scripts/check-stage-gate.mjs
+## Last Scan
+
+- git status:
+- pending_review:
+- runnable_tasks:
+- blocked_tasks:
+- next_action:
+
+## Last Verified
+
+- node scripts/check-initiative-package.mjs .

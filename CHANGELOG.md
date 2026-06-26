@@ -4,21 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Clarified that `继续` is the default autopilot trigger, including in `source-locked` projects.
+- Added `docs/gitflow.md` as the project-level Gitflow source of truth and changed branch naming to `<type>/<id6>_<YYMMDD>_<short_name>`.
+- Updated branch validation, templates, and demos for `feature/000012_260626_import_folder` style branches.
+- Slimmed the White Tower skill into an execution-focused contract, removing migration details from the main skill body and reducing repeated explanatory sections.
+- Redefined White Tower around a task generation system and a task selection/execution loop instead of stage gates as the primary model.
+- Added task taxonomy for epics, features, changes, bugs, UI/UX, optimizations, refactors, tech debt, tests, infra, releases, docs, research, migrations, cleanup, security, and ops.
+- Updated dispatch behavior to scan the task pool continuously, refine coarse DAGs, execute runnable tasks, archive done work, sweep follow-ups, and stop only for human gates or hard blockers.
+- Clarified that `继续` is the default autopilot trigger for task-pool projects.
 - Clarified that approved technical plans, successful checks, commits, pushes, clean working trees, and completed batches are checkpoints, not autopilot stop conditions.
 - Added a `ui-ux-pro-max` priority strategy for UI/UX design research while preserving PRD and page-job override rules.
 - Added a UI/UX drawing quality gate for page-job briefs, end-user copy, structural simplification, material revision deltas, and screenshot self-review before user confirmation.
 - Simplified initiative package folders to `planned/`, `active/`, `done/`, and `archived/`; finer states now live in `00-meta.md` as `lifecycle_state`.
-- Renamed the durable package root from `docs/requirements/` to `docs/initiatives/`; legacy `docs/requirements/` paths are migrated automatically.
-- Removed year/quarter initiative-package folders and the old `--requirements-period` workflow.
+- Renamed the durable package root from the old requirements wording to `docs/initiatives/`.
+- Removed year/quarter initiative-package folders and period-based workflows.
 - Changed phase checks from hard project enforcement to White Tower self-governance by default.
 - Added checkpoint-first run recovery rules.
-- Added migration repair for perioded generated initiative packages from older `--create-initiatives` runs.
-- Added optional legacy workstream-to-initiative-package generation with `--create-initiatives`.
-- Added a legacy migration script for old workstream layouts.
-- Added legacy compatibility rules for upgraded skills.
-- Added workstream lifecycle directories and rules to prevent completed workstreams from staying in the active queue.
-- Added workstream status-directory validation to the PRD governance demo.
+- Removed legacy migration scripts, workstream templates, stage-gate templates, and the old PRD-governance demo from the active repository surface.
+- Kept initiative-package validation as the single deterministic checker.
 - Added a `dispatch` trigger for automatic environment-aware multi-agent task execution.
 - Added a task-dispatch prompt template.
 - Added technical-plan governance fields for initiative packages.

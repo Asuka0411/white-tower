@@ -5,6 +5,6 @@
 运行：
 
 ```bash
-node templates/scripts/check-initiative-package.mjs examples/initiative-package-demo --branch=feat_012_import_folder
+node templates/scripts/check-initiative-package.mjs examples/initiative-package-demo --branch=feature/000012_260626_import_folder
 node examples/initiative-package-demo/scripts/run-edge-cases.mjs
 ```

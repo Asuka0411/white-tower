@@ -12,8 +12,8 @@ source_discussion: demo
 human_review_required: true
 
 linked_branches:
-- feat_012_import_folder
-- feat_012_scan_diff
+- feature/000012_260626_import_folder
+- feature/000012_260626_scan_diff
 
 ## 状态历史
 
