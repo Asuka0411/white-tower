@@ -14,20 +14,20 @@ All notable changes to this project will be documented in this file.
 - Clarified that approved technical plans, successful checks, commits, pushes, clean working trees, and completed batches are checkpoints, not autopilot stop conditions.
 - Added a `ui-ux-pro-max` priority strategy for UI/UX design research while preserving PRD and page-job override rules.
 - Added a UI/UX drawing quality gate for page-job briefs, end-user copy, structural simplification, material revision deltas, and screenshot self-review before user confirmation.
-- Simplified initiative package folders to `planned/`, `active/`, `done/`, and `archived/`; finer states now live in `00-meta.md` as `lifecycle_state`.
-- Renamed the durable package root from the old requirements wording to `docs/initiatives/`.
-- Removed year/quarter initiative-package folders and period-based workflows.
+- Simplified 交付项包 folders to `planned/`, `active/`, `done/`, and `archived/`; finer states now live in `00-meta.md` as `lifecycle_state`.
+- Renamed the durable package root from the old requirements wording to `docs/work-items/`.
+- Removed year/quarter work-item-package folders and period-based workflows.
 - Changed phase checks from hard project enforcement to White Tower self-governance by default.
 - Added checkpoint-first run recovery rules.
 - Removed legacy migration scripts, workstream templates, stage-gate templates, and the old PRD-governance demo from the active repository surface.
-- Kept initiative-package validation as the single deterministic checker.
+- Kept work-item-package validation as the single deterministic checker.
 - Added a `dispatch` trigger for automatic environment-aware multi-agent task execution.
 - Added a task-dispatch prompt template.
-- Added technical-plan governance fields for initiative packages.
+- Added technical-plan governance fields for work item packages.
 - Added a default UI/data separation and layer-boundary section to technical planning.
 - Added task traceability fields that link tasks back to technical-plan sections.
-- Extended the initiative-package checker with technical plan and task contract validation.
-- Added initiative-package demo and edge-case checks to CI.
+- Extended the work-item-package checker with technical plan and task contract validation.
+- Added work-item-package demo and edge-case checks to CI.
 - Added white-tower skill version metadata for cross-project self-checks.
 - Namespaced White Tower control files under `docs/white-tower/`.
 - Added an installed-skill update script.

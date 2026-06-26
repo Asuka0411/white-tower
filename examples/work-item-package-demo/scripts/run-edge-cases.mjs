@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const scriptPath = fileURLToPath(import.meta.url);
 const demoRoot = path.dirname(path.dirname(scriptPath));
 const repoRoot = path.dirname(path.dirname(demoRoot));
-const checker = path.join(repoRoot, "templates/scripts/check-initiative-package.mjs");
+const checker = path.join(repoRoot, "templates/scripts/check-work-item-package.mjs");
 
 function mutate(root, relativePath, replacer) {
   const target = path.join(root, relativePath);
@@ -18,7 +18,7 @@ function mutate(root, relativePath, replacer) {
 }
 
 function cloneDemo() {
-  const tempRoot = mkdtempSync(path.join(tmpdir(), "initiative-package-demo-"));
+  const tempRoot = mkdtempSync(path.join(tmpdir(), "work-item-package-demo-"));
   cpSync(demoRoot, tempRoot, { recursive: true });
   return tempRoot;
 }
@@ -54,13 +54,13 @@ const cases = [
     mutate() {},
   },
   {
-    name: "initiative id mismatch fails",
+    name: "work item id mismatch fails",
     expectPass: false,
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/00-meta.md",
-        (text) => text.replace("initiative_id: 012", "initiative_id: 013"),
+        "docs/work-items/active/012_import_folder/00-meta.md",
+        (text) => text.replace("work_item_id: 012", "work_item_id: 013"),
       );
     },
   },
@@ -70,7 +70,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/00-meta.md",
+        "docs/work-items/active/012_import_folder/00-meta.md",
         (text) => text.replace("status: active", "status: planned"),
       );
     },
@@ -81,7 +81,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/00-meta.md",
+        "docs/work-items/active/012_import_folder/00-meta.md",
         (text) => text.replace("lifecycle_state: active", "lifecycle_state: ready"),
       );
     },
@@ -92,7 +92,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/04-任务拆解.md",
+        "docs/work-items/active/012_import_folder/04-任务拆解.md",
         (text) => text.replace("verification:\n- npm test -- import", "verification:\n"),
       );
     },
@@ -103,7 +103,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/03-技术方案.md",
+        "docs/work-items/active/012_import_folder/03-技术方案.md",
         (text) => {
           const lines = text.split(/\r?\n/);
           const start = lines.findIndex((line) => line === "## 技术目标");
@@ -123,7 +123,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/03-技术方案.md",
+        "docs/work-items/active/012_import_folder/03-技术方案.md",
         () => "",
       );
     },
@@ -134,7 +134,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/03-技术方案.md",
+        "docs/work-items/active/012_import_folder/03-技术方案.md",
         (text) => text.replace("migration_level: compatible", "migration_level: risky"),
       );
     },
@@ -145,7 +145,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/03-技术方案.md",
+        "docs/work-items/active/012_import_folder/03-技术方案.md",
         (text) => text
           .replace("plan_status: review", "plan_status: approved")
           .replace("- none\n\n## 需要新增或更新的 ADR", "- 是否需要后台重试队列。\n\n## 需要新增或更新的 ADR"),
@@ -158,7 +158,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/03-技术方案.md",
+        "docs/work-items/active/012_import_folder/03-技术方案.md",
         (text) => text
           .replace("migration_level: compatible", "migration_level: breaking")
           .replace("- `docs/adr/0001-import-snapshot.md`", "- none"),
@@ -171,7 +171,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/04-任务拆解.md",
+        "docs/work-items/active/012_import_folder/04-任务拆解.md",
         (text) => text.replace(
           /source_plan_sections:\n(?:- .+\n)+deliverable:/,
           "source_plan_sections:\ndeliverable:",
@@ -185,7 +185,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/04-任务拆解.md",
+        "docs/work-items/active/012_import_folder/04-任务拆解.md",
         (text) => text.replace("- 数据结构", "- 不存在的技术章节"),
       );
     },
@@ -196,7 +196,7 @@ const cases = [
     mutate(root) {
       mutate(
         root,
-        "docs/initiatives/active/012_import_folder/04-任务拆解.md",
+        "docs/work-items/active/012_import_folder/04-任务拆解.md",
         (text) => text.replace("branch: feature/000012_260626_scan_diff", "branch: feature/000013_260626_scan_diff"),
       );
     },

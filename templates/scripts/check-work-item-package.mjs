@@ -145,7 +145,7 @@ function listField(body, name) {
 }
 
 function fail(errors) {
-  console.error("Initiative package check failed:");
+  console.error("Work item package check failed:");
   for (const error of errors) {
     console.error(`- ${error}`);
   }
@@ -210,7 +210,7 @@ if (branchName && !validBranch(branchName)) {
   errors.push(`Invalid branch name: ${branchName}. Use <type>/<id6>_<YYMMDD>_<short_name>, e.g. feature/000012_260626_import_folder.`);
 }
 
-const packages = listMarkdownDirs("docs/initiatives");
+const packages = listMarkdownDirs("docs/work-items");
 
 for (const packageDir of packages) {
   const packageName = path.basename(packageDir);
@@ -230,24 +230,24 @@ for (const packageDir of packages) {
   }
 
   const meta = read(`${packageDir}/00-meta.md`);
-  const initiativeId = field(meta, "initiative_id") || field(meta, "requirement_id");
+  const workItemId = field(meta, "work_item_id");
   const status = field(meta, "status");
   const lifecycleState = field(meta, "lifecycle_state");
   const pathParts = packageDir.split("/");
   const pathStatus = pathParts.at(-2);
 
   if (pathParts.length !== 4) {
-    errors.push(`${packageDir} must be directly under docs/initiatives/<planned|active|done|archived>/, without year or quarter folders.`);
+    errors.push(`${packageDir} must be directly under docs/work-items/<planned|active|done|archived>/, without year or quarter folders.`);
   }
 
   if (!validFolderStatuses.has(pathStatus)) {
     errors.push(`${packageDir} must be under planned, active, done, or archived.`);
   }
 
-  if (!initiativeId) {
-    errors.push(`${packageDir}/00-meta.md must declare initiative_id.`);
-  } else if (idFromPath && initiativeId !== idFromPath[1]) {
-    errors.push(`${packageDir}/00-meta.md initiative_id=${initiativeId} does not match folder ID ${idFromPath[1]}.`);
+  if (!workItemId) {
+    errors.push(`${packageDir}/00-meta.md must declare work_item_id.`);
+  } else if (idFromPath && workItemId !== idFromPath[1]) {
+    errors.push(`${packageDir}/00-meta.md work_item_id=${workItemId} does not match folder ID ${idFromPath[1]}.`);
   }
 
   if (!status) {
@@ -271,8 +271,8 @@ for (const packageDir of packages) {
     if (!validBranch(linkedBranch)) {
       errors.push(`${packageDir}/00-meta.md has invalid linked branch ${linkedBranch}.`);
     }
-    if (initiativeId && /^(feature|fix|hotfix)\//.test(linkedBranch) && branchId(linkedBranch) !== String(Number(initiativeId))) {
-      errors.push(`${packageDir}/00-meta.md linked branch ${linkedBranch} does not match initiative_id=${initiativeId}.`);
+    if (workItemId && /^(feature|fix|hotfix)\//.test(linkedBranch) && branchId(linkedBranch) !== String(Number(workItemId))) {
+      errors.push(`${packageDir}/00-meta.md linked branch ${linkedBranch} does not match work_item_id=${workItemId}.`);
     }
   }
 
@@ -343,8 +343,8 @@ for (const packageDir of packages) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare branch.`);
     } else if (!validBranch(branch)) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} has invalid branch ${branch}.`);
-    } else if (initiativeId && /^(feature|fix|hotfix)\//.test(branch) && branchId(branch) !== String(Number(initiativeId))) {
-      errors.push(`${packageDir}/04-任务拆解.md ${task.id} branch ${branch} does not match initiative_id=${initiativeId}.`);
+    } else if (workItemId && /^(feature|fix|hotfix)\//.test(branch) && branchId(branch) !== String(Number(workItemId))) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} branch ${branch} does not match work_item_id=${workItemId}.`);
     }
 
     if (!status) {
@@ -408,4 +408,4 @@ if (errors.length) {
   fail(errors);
 }
 
-console.log(`Initiative package check passed: ${packages.length} package(s).`);
+console.log(`Work item package check passed: ${packages.length} package(s).`);

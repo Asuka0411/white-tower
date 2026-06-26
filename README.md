@@ -29,10 +29,10 @@
 │   ├── docs/gitflow.md
 │   ├── docs/product/
 │   ├── docs/white-tower/status.md
-│   ├── docs/initiatives/template/
+│   ├── docs/work-items/template/
 │   ├── prompts/task-dispatch.md
-│   └── scripts/check-initiative-package.mjs
-└── examples/initiative-package-demo/
+│   └── scripts/check-work-item-package.mjs
+└── examples/work-item-package-demo/
 ```
 
 ## 安装
@@ -85,29 +85,29 @@ omp --cwd /path/to/project --skills=white-tower "Use $white-tower dispatch max_p
 在目标项目复制最小模板：
 
 ```bash
-mkdir -p docs/product docs/white-tower docs/initiatives/{planned,active,done,archived} scripts
+mkdir -p docs/product docs/white-tower docs/work-items/{planned,active,done,archived} scripts
 cp /path/to/white-tower/templates/TODO.md TODO.md
 cp /path/to/white-tower/templates/docs/gitflow.md docs/gitflow.md
 cp /path/to/white-tower/templates/docs/product/PRD.md docs/product/PRD.md
 cp /path/to/white-tower/templates/docs/product/UI.md docs/product/UI.md
 cp /path/to/white-tower/templates/docs/product/TECH.md docs/product/TECH.md
 cp /path/to/white-tower/templates/docs/white-tower/status.md docs/white-tower/status.md
-cp /path/to/white-tower/templates/scripts/check-initiative-package.mjs scripts/check-initiative-package.mjs
-node scripts/check-initiative-package.mjs .
+cp /path/to/white-tower/templates/scripts/check-work-item-package.mjs scripts/check-work-item-package.mjs
+node scripts/check-work-item-package.mjs .
 ```
 
-白塔自己的状态只放在 `docs/white-tower/status.md`。项目任务只放在 initiative package；不要再建立额外的任务状态目录。
+白塔自己的状态只放在 `docs/white-tower/status.md`。项目任务只放在交付项包；不要再建立额外的任务状态目录。
 
-创建具体 initiative 时，把 `templates/docs/initiatives/template/` 复制到真实状态目录，并替换 ID、标题和分支名：
+创建具体交付项时，把 `templates/docs/work-items/template/` 复制到真实状态目录，并替换 ID、标题和分支名：
 
 ```bash
-cp -R /path/to/white-tower/templates/docs/initiatives/template docs/initiatives/planned/001_需求标题
+cp -R /path/to/white-tower/templates/docs/work-items/template docs/work-items/planned/001_需求标题
 ```
 
-## Initiative Package
+## 交付项包
 
 ```text
-docs/initiatives/active/012_导入文件夹/
+docs/work-items/active/012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -123,13 +123,13 @@ docs/initiatives/active/012_导入文件夹/
 外部目录只使用四类状态：
 
 ```text
-docs/initiatives/planned/
-docs/initiatives/active/
-docs/initiatives/done/
-docs/initiatives/archived/
+docs/work-items/planned/
+docs/work-items/active/
+docs/work-items/done/
+docs/work-items/archived/
 ```
 
-细状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。initiative 目录推荐中文名，例如 `001_管理目录初始化与空图库壳`；Git 分支仍使用英文 slug。
+细状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。交付项目录推荐中文名，例如 `001_管理目录初始化与空图库壳`；Git 分支仍使用英文 slug。
 
 ## Gitflow
 
@@ -155,13 +155,13 @@ hotfix/000018_260626_launch_crash
 本仓库当前只保留一个确定性检查脚本：
 
 ```bash
-node --check templates/scripts/check-initiative-package.mjs
-node templates/scripts/check-initiative-package.mjs examples/initiative-package-demo --branch=feature/000012_260626_import_folder
-node examples/initiative-package-demo/scripts/run-edge-cases.mjs
+node --check templates/scripts/check-work-item-package.mjs
+node templates/scripts/check-work-item-package.mjs examples/work-item-package-demo --branch=feature/000012_260626_import_folder
+node examples/work-item-package-demo/scripts/run-edge-cases.mjs
 git diff --check
 ```
 
-检查范围包括 initiative 结构、技术方案状态、迁移等级、任务追溯、分支格式、验收反写和归档原因。
+检查范围包括交付项结构、技术方案状态、迁移等级、任务追溯、分支格式、验收反写和归档原因。
 
 ## 适用场景
 

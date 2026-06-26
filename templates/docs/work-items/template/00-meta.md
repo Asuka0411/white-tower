@@ -1,6 +1,6 @@
 # 交付事项元信息
 
-initiative_id: 012
+work_item_id: 012
 title: <需求标题>
 status: planned
 lifecycle_state: planned

@@ -1,12 +1,12 @@
 # White Tower Task Dispatch Prompt
 
-Use this prompt inside a project that has a White Tower task pool or initiative packages.
+Use this prompt inside a project that has a White Tower task pool or work item packages.
 
 ```text
 Use $white-tower dispatch max_parallel=2
 
 自动完成：
-1. 扫描 git status、TODO、docs/product、docs/initiatives 和白塔状态文件。
+1. 扫描 git status、TODO、docs/product、docs/work-items 和白塔状态文件。
 2. 运行可用自检脚本。
 3. 先处理 pending_review；需要用户确认图片或产品决策时发送证据后停。
 4. 根据任务类型、优先级、状态、依赖、allowed_paths、blocked_paths、conflict_risk 和 contract_changes 找出 runnable tasks。

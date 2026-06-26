@@ -7,7 +7,7 @@
 ## 设计边界
 
 - 产品真相必须落在仓库文件里，不能只留在聊天里。
-- 同一个交付事项的 PRD、UI/UX、技术方案、任务拆解、验收和发布交接放在同一个 initiative package。
+- 同一个交付项的 PRD、UI/UX、技术方案、任务拆解、验收和发布交接放在同一个交付项包。
 - 白塔只约束显式使用白塔的 agent 自己，不默认限制其他工具或其他人。
 - 人工确认只保留在高影响决策上：PRD / 产品范围、产品级 UI/UX、需求级 UI/UX 图片、重大架构、破坏性迁移、外部服务、付费能力和删除用户已有改动。
 - 其他可安全推进的工作应该自动循环执行，不停在“已提交”“工作树干净”“本轮完成”。
@@ -21,16 +21,16 @@ docs/product/TECH.md
 docs/adr/
 docs/gitflow.md
 docs/white-tower/status.md
-docs/initiatives/planned/
-docs/initiatives/active/
-docs/initiatives/done/
-docs/initiatives/archived/
+docs/work-items/planned/
+docs/work-items/active/
+docs/work-items/done/
+docs/work-items/archived/
 ```
 
-单个 initiative：
+单个交付项：
 
 ```text
-docs/initiatives/active/012_导入文件夹/
+docs/work-items/active/012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md

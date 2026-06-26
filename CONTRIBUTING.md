@@ -14,9 +14,9 @@ Thanks for improving 白塔协议.
 
 - The change has a clear use case.
 - The skill instructions still describe the actual template behavior.
-- `node --check templates/scripts/check-initiative-package.mjs` runs successfully.
-- `node templates/scripts/check-initiative-package.mjs examples/initiative-package-demo --branch=feature/000012_260626_import_folder` runs successfully.
-- `node examples/initiative-package-demo/scripts/run-edge-cases.mjs` runs successfully.
+- `node --check templates/scripts/check-work-item-package.mjs` runs successfully.
+- `node templates/scripts/check-work-item-package.mjs examples/work-item-package-demo --branch=feature/000012_260626_import_folder` runs successfully.
+- `node examples/work-item-package-demo/scripts/run-edge-cases.mjs` runs successfully.
 - `git diff --check` passes.
 - Documentation examples stay copy-pasteable.
 - The change does not introduce secrets, private paths, or project-specific data.
@@ -27,7 +27,7 @@ Use concise commit messages. Examples:
 
 ```text
 docs: clarify task-pool loop
-feat: add initiative checker rule
+feat: add work item checker rule
 fix: accept gitflow branch format
 ```
 
@@ -37,7 +37,7 @@ When opening an issue, include:
 
 - What task-pool state you were in.
 - The relevant `docs/white-tower/status.md` content.
-- The relevant initiative package path.
+- The relevant work item package path.
 - The command you ran.
 - The expected behavior.
 - The actual output.

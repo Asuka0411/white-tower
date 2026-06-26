@@ -2,7 +2,7 @@
 
 ```yaml
 task_pool_model: true
-status_version: 0.14.0-dev
+status_version: 0.15.0-dev
 loop_state: collecting
 last_scan_at:
 active_run:
@@ -12,7 +12,7 @@ pending_human_gate: none
 ## Current Focus
 
 - collect-tasks
-- refine-initiatives
+- refine-work-items
 - dispatch-runnable-tasks
 - verify-and-archive
 - sweep-followups
@@ -20,7 +20,7 @@ pending_human_gate: none
 ## Allowed Actions
 
 - update-docs
-- create-or-update-initiative
+- create-or-update-work-item
 - create-uiux-review
 - create-technical-plan
 - create-task-dag
@@ -51,4 +51,4 @@ pending_human_gate: none
 
 ## Last Verified
 
-- node scripts/check-initiative-package.mjs .
+- node scripts/check-work-item-package.mjs .

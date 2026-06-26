@@ -32,7 +32,7 @@ hotfix/000018_260626_launch_crash
 Rules:
 
 - `type` must be `feature`, `fix`, `release`, or `hotfix`.
-- `id6` must be exactly six digits and should map to the initiative, task, or slice id. Pad with leading zeroes.
+- `id6` must be exactly six digits and should map to the work item, task, or slice id. Pad with leading zeroes.
 - `YYMMDD` is the branch creation date.
 - `short_name` uses lowercase English words, numbers, and underscores only.
 - Do not use Chinese, spaces, hyphens, uppercase letters, or extra slashes.
