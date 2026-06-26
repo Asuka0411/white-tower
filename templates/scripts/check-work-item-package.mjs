@@ -158,7 +158,7 @@ function validBranch(name) {
 
 function branchId(name) {
   const match = name.match(/^(?:feature|fix|hotfix|release)\/(\d{6})_/);
-  return match ? String(Number(match[1])) : "";
+  return match ? match[1] : "";
 }
 
 const errors = [];
@@ -214,9 +214,9 @@ const packages = listMarkdownDirs("docs/work-items");
 
 for (const packageDir of packages) {
   const packageName = path.basename(packageDir);
-  const idFromPath = packageName.match(/^(\d{3,})_/);
+  const idFromPath = packageName.match(/^(\d{6})_/);
   if (!idFromPath) {
-    errors.push(`${packageDir} must start with a numeric ID, e.g. 012_import_folder.`);
+    errors.push(`${packageDir} must start with a six-digit work item ID, e.g. 000012_import_folder.`);
   }
 
   for (const file of requiredPackageFiles) {
@@ -246,6 +246,8 @@ for (const packageDir of packages) {
 
   if (!workItemId) {
     errors.push(`${packageDir}/00-meta.md must declare work_item_id.`);
+  } else if (!/^\d{6}$/.test(workItemId)) {
+    errors.push(`${packageDir}/00-meta.md work_item_id=${workItemId} must be exactly six digits.`);
   } else if (idFromPath && workItemId !== idFromPath[1]) {
     errors.push(`${packageDir}/00-meta.md work_item_id=${workItemId} does not match folder ID ${idFromPath[1]}.`);
   }
@@ -271,7 +273,7 @@ for (const packageDir of packages) {
     if (!validBranch(linkedBranch)) {
       errors.push(`${packageDir}/00-meta.md has invalid linked branch ${linkedBranch}.`);
     }
-    if (workItemId && /^(feature|fix|hotfix)\//.test(linkedBranch) && branchId(linkedBranch) !== String(Number(workItemId))) {
+    if (workItemId && /^(feature|fix|hotfix)\//.test(linkedBranch) && branchId(linkedBranch) !== workItemId) {
       errors.push(`${packageDir}/00-meta.md linked branch ${linkedBranch} does not match work_item_id=${workItemId}.`);
     }
   }
@@ -343,7 +345,7 @@ for (const packageDir of packages) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare branch.`);
     } else if (!validBranch(branch)) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} has invalid branch ${branch}.`);
-    } else if (workItemId && /^(feature|fix|hotfix)\//.test(branch) && branchId(branch) !== String(Number(workItemId))) {
+    } else if (workItemId && /^(feature|fix|hotfix)\//.test(branch) && branchId(branch) !== workItemId) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} branch ${branch} does not match work_item_id=${workItemId}.`);
     }
 

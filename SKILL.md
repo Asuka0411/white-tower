@@ -62,7 +62,7 @@ Use $white-tower 更新白塔
 每个任务尽量补齐这些字段；能从仓库确定就自动补，需要产品判断才问用户：
 
 ```yaml
-task_id: <三位数字或 TASK-ID>
+task_id: <六位数字或 TASK-ID>
 title: <中文短标题>
 type: <epic|feature|change|bug|uiux|optimization|refactor|tech_debt|test|infra|release|docs|research|migration|cleanup|security|ops>
 source: <user|screenshot|log|test|todo|prd|followup|audit>
@@ -129,7 +129,7 @@ docs/work-items/archived/
 推荐结构：
 
 ```text
-docs/work-items/active/012_导入文件夹/
+docs/work-items/active/000012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -144,7 +144,7 @@ docs/work-items/active/012_导入文件夹/
 
 目录规则：
 
-- 交付项目录推荐 `<三位数字>_<中文短标题>`，例如 `001_管理目录初始化与空图库壳`。
+- 交付项目录推荐 `<六位数字>_<中文短标题>`，例如 `000001_管理目录初始化与空图库壳`。
 - 目录 ID 必须和 `00-meta.md` 的 `work_item_id` 一致。
 - Git 分支使用英文 slug，例如 `feature/000001_260626_foundation_library_shell`，不要使用中文分支名。
 - `docs/work-items/README.md`、`TODO.md` 和其他文档引用必须使用真实路径。

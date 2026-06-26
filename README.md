@@ -101,13 +101,13 @@ node scripts/check-work-item-package.mjs .
 创建具体交付项时，把 `templates/docs/work-items/template/` 复制到真实状态目录，并替换 ID、标题和分支名：
 
 ```bash
-cp -R /path/to/white-tower/templates/docs/work-items/template docs/work-items/planned/001_需求标题
+cp -R /path/to/white-tower/templates/docs/work-items/template docs/work-items/planned/000001_需求标题
 ```
 
 ## 交付项包
 
 ```text
-docs/work-items/active/012_导入文件夹/
+docs/work-items/active/000012_导入文件夹/
 ├── 00-meta.md
 ├── 01-需求文档.md
 ├── 02-界面设计.md
@@ -129,7 +129,7 @@ docs/work-items/done/
 docs/work-items/archived/
 ```
 
-细状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。交付项目录推荐中文名，例如 `001_管理目录初始化与空图库壳`；Git 分支仍使用英文 slug。
+细状态写入 `00-meta.md` 的 `lifecycle_state`，例如 `preparing`、`ready`、`review`、`paused`、`blocked`。交付项目录推荐中文名，例如 `000001_管理目录初始化与空图库壳`；Git 分支仍使用英文 slug。
 
 ## Gitflow
 
