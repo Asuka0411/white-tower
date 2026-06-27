@@ -4,6 +4,8 @@ This file is the project-level source of truth for branch, merge, release, and h
 
 All AI agents and automation must read this file before creating branches, committing, merging, pushing, releasing, or changing task branch metadata. If this file conflicts with agent-global instructions or skill fallback rules, this file wins.
 
+Before changing repository files, check the current branch. If the current branch is `main`, `develop`, `release/*`, or `hotfix/*`, do not commit new work there unless the user explicitly asked for that. Create or switch to a valid `feature/*` or `fix/*` branch first, then edit, commit, and push.
+
 ## Branches
 
 - `main`: stable release history.

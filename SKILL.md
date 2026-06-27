@@ -1,6 +1,6 @@
 ---
 name: white-tower
-version: 0.15.1-dev
+version: 0.15.2-dev
 codename: white-tower
 updated_at: 2026-06-26
 description: 白塔协议 for task-pool based AI product delivery. Use when the user wants to capture requirements, bugs, UI/UX work, improvements, refactors, releases, or follow-ups; normalize them into durable work item packages; select runnable tasks by type, priority, status, dependencies, path conflicts, and human gates; then plan, slice, execute with Gitflow and optional multi-agent parallelism, verify, commit, merge, release when needed, archive, sweep follow-ups, and keep looping until only explicit human gates or hard blockers remain.
@@ -34,7 +34,7 @@ Use $white-tower 自检：输出 name、version、codename、updated_at、核心
 
 ```text
 name: white-tower
-version: 0.15.1-dev
+version: 0.15.2-dev
 codename: white-tower
 updated_at: 2026-06-26
 core model: task generation + task selection/execution loop
@@ -392,6 +392,8 @@ UI 质量闸：
 ## Gitflow
 
 所有分支、提交、合并和发布行为必须先读取并遵守 `docs/gitflow.md`。如果项目入口文件、全局 agent 规则或本 skill fallback 与 `docs/gitflow.md` 冲突，以 `docs/gitflow.md` 为准。
+
+执行任何会改动仓库文件的任务前，必须先确认当前分支。若当前分支是 `main`、`develop`、`release/*` 或 `hotfix/*`，且用户没有明确要求直接在该分支提交，必须先创建或切换到符合规则的 `feature/*` 或 `fix/*` 工作分支，再编辑、提交或 push。不能在发现自己位于主线或集成分支后继续把新改动提交到该分支。
 
 如果项目没有 `docs/gitflow.md`，白塔使用 fallback 分支格式：`<type>/<id6>_<YYMMDD>_<short_name>`。
 
