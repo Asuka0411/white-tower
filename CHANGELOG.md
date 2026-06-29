@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Require each implementation task to run on its own `feature/*` or `fix/*` branch and merge back to `develop`/`dev`; feature/fix tasks may no longer declare `main` as `merge_target`.
+- Require White Tower and all agents following `docs/gitflow.md` to create or switch to a feature/fix branch before editing from `main`, `develop`, `dev`, `release/*`, or `hotfix/*`, unless the user explicitly asks to work there.
 - Require every White Tower run to print `white-tower version: <version>` as the first response line.
 - Added `docs/gitflow.md` as the project-level Gitflow source of truth and changed branch naming to `<type>/<id6>_<YYMMDD>_<short_name>`.
 - Updated branch validation, templates, and demos for `feature/000012_260626_import_folder` style branches.

@@ -96,7 +96,7 @@ function taskSections(markdown) {
   let current = null;
 
   for (const line of lines) {
-    const heading = line.match(/^### (TASK-[^:]+):/);
+    const heading = line.match(/^### ((?:TASK-[^:]+)|(?:[A-Z]\d{3,}(?:-[A-Z0-9]+)*))(?:[:\s]|$)/);
     if (heading) {
       if (current) {
         tasks.push(current);
@@ -159,6 +159,19 @@ function validBranch(name) {
 function branchId(name) {
   const match = name.match(/^(?:feature|fix|hotfix|release)\/(\d{6})_/);
   return match ? match[1] : "";
+}
+
+function validTaskMergeTarget(branch, mergeTarget) {
+  if (/^(feature|fix)\//.test(branch)) {
+    return mergeTarget === "develop" || mergeTarget === "dev";
+  }
+  if (/^release\//.test(branch)) {
+    return mergeTarget === "main" || mergeTarget === "develop" || mergeTarget === "dev";
+  }
+  if (/^hotfix\//.test(branch)) {
+    return mergeTarget === "main" || mergeTarget === "develop" || mergeTarget === "dev";
+  }
+  return false;
 }
 
 const errors = [];
@@ -340,6 +353,7 @@ for (const packageDir of packages) {
     const acceptanceSlice = field(task.body, "acceptance_slice");
     const contractChanges = field(task.body, "contract_changes");
     const reviewFocus = field(task.body, "review_focus");
+    const mergePolicy = field(task.body, "merge_policy");
 
     if (!branch) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare branch.`);
@@ -354,6 +368,8 @@ for (const packageDir of packages) {
     }
     if (!mergeTarget) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare merge_target.`);
+    } else if (branch && validBranch(branch) && !validTaskMergeTarget(branch, mergeTarget)) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} has invalid merge_target ${mergeTarget} for ${branch}. feature/fix tasks must merge to develop or dev.`);
     }
     if (!allowedPaths.length) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare allowed_paths.`);
@@ -380,6 +396,9 @@ for (const packageDir of packages) {
     }
     if (!reviewFocus) {
       errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare review_focus.`);
+    }
+    if (!mergePolicy) {
+      errors.push(`${packageDir}/04-任务拆解.md ${task.id} must declare merge_policy.`);
     }
   }
 

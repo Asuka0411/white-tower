@@ -4,12 +4,14 @@ This file is the project-level source of truth for branch, merge, release, and h
 
 All AI agents and automation must read this file before creating branches, committing, merging, pushing, releasing, or changing task branch metadata. If this file conflicts with agent-global instructions or skill fallback rules, this file wins.
 
+Before changing repository files, check the current branch. If the current branch is `main`, `develop`, `dev`, `release/*`, or `hotfix/*`, do not commit new work there unless the user explicitly asked for that. Create or switch to a valid `feature/*` or `fix/*` task branch first, then edit, commit, and push.
+
 ## Branches
 
 - `main`: stable release history.
-- `develop`: integration branch for completed feature and fix work.
-- `feature/*`: normal feature or task-slice work, branched from `develop`, merged back to `develop`.
-- `fix/*`: non-emergency bug work, branched from `develop`, merged back to `develop`.
+- `develop`: integration branch for completed feature and fix work. If the project already uses `dev`, treat `dev` as the integration branch and keep task metadata consistent.
+- `feature/*`: normal feature or task-slice work, branched from the integration branch, merged back to the integration branch.
+- `fix/*`: non-emergency bug work, branched from the integration branch, merged back to the integration branch.
 - `release/*`: release preparation, branched from `develop`, merged to both `main` and `develop`.
 - `hotfix/*`: urgent production fix, branched from `main`, merged to both `main` and `develop`.
 
@@ -40,6 +42,8 @@ Rules:
 ## Multi-Agent Safety
 
 - Every implementation task must declare `branch`, `merge_target`, `allowed_paths`, `blocked_paths`, and `verification`.
+- Every implementation task must run on its own `feature/*` or `fix/*` branch. Do not implement task work directly on `main`, `develop`, or `dev`.
+- Every completed `feature/*` or `fix/*` task must be merged back to the integration branch before the next dependent task is treated as complete.
 - Parallel workers must not modify overlapping `allowed_paths`.
 - Workers must not modify another worker's `blocked_paths`.
 - Shared schema, router, manifest, migration, public API, final integration, release, and hotfix work should run sequentially unless the task explicitly proves it is safe.
@@ -47,7 +51,8 @@ Rules:
 
 ## Merge Targets
 
-- `feature/*` and `fix/*` merge to `develop`.
+- `feature/*` and `fix/*` merge to `develop` by default, or to `dev` when the repository explicitly uses `dev` as its integration branch.
+- `feature/*` and `fix/*` must not declare `main` as `merge_target`.
 - `release/*` merges to `main` and back to `develop`.
 - `hotfix/*` merges to `main` and back to `develop`.
 

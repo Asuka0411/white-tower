@@ -212,6 +212,28 @@ const cases = [
       );
     },
   },
+  {
+    name: "feature task merge target main fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/work-items/active/000012_import_folder/04-任务拆解.md",
+        (text) => text.replace("merge_target: develop", "merge_target: main"),
+      );
+    },
+  },
+  {
+    name: "missing task merge policy fails",
+    expectPass: false,
+    mutate(root) {
+      mutate(
+        root,
+        "docs/work-items/active/000012_import_folder/04-任务拆解.md",
+        (text) => text.replace("merge_policy: merge verified task branch back to develop/dev before marking task done\n", ""),
+      );
+    },
+  },
 ];
 
 const results = [];

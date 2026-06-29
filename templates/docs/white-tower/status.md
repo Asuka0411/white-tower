@@ -2,7 +2,7 @@
 
 ```yaml
 task_pool_model: true
-status_version: 0.15.1-dev
+status_version: 0.15.2-dev
 loop_state: collecting
 last_scan_at:
 active_run:
